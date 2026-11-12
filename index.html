@@ -757,7 +757,7 @@ const filPorCod=c=>filiais().find(f=>f.cod===c);
 const nomeFil=c=>{const f=filPorCod(c);return f?`${f.cod} ${f.sigla||""}${f.nome?" · "+f.nome:""}`.trim():(c||"-")};
 const siglaFil=c=>{const f=filPorCod(c);return f?(f.sigla||f.cod):(c||"-")};
 function faixasDe(f){
-  const s=String(f.faixas||"").replace(/(\d{5})-(\d{3})/g,"$1$2"),out=[];
+  const s=String(f.faixas||"").replace(/(?<!\d)(\d{5})-(\d{3})(?!\d)/g,"$1$2"),out=[];
   s.split(/[;,\n]+/).forEach(t=>{t=t.trim();if(!t)return;
     const m=t.match(/^(\d{8})\s*(?:a|até|ate|-|–)\s*(\d{8})$/i);
     if(m){out.push([+m[1],+m[2]]);return}
