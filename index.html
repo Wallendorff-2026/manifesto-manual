@@ -33,6 +33,9 @@ legend{color:var(--verde);font-weight:bold;font-size:13px}
 .campos input,.campos select{width:100%;padding:4px 5px;border:1px solid #bbb;font-size:12px;background:#fff}
 .campos input:focus,.campos select:focus{outline:2px solid #e8c34a}
 .c2{grid-column:span 2}
+.obsg{margin-top:6px}.obsg label{display:block;color:var(--azul);margin-bottom:2px}
+.obsg textarea{width:100%;padding:5px;border:1px solid #bbb;font-family:inherit;font-size:12px;resize:vertical;background:#fff}
+.obsg textarea:focus{outline:2px solid #e8c34a}.obsg textarea:disabled{background:#f6f3e4;color:#000}
 input.invalido{border-color:var(--erro)!important;background:#fff3f3!important}
 .bip{display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:center}
 #leitor{width:100%;font-family:Consolas,"Courier New",monospace;font-size:20px;padding:16px 12px;border:2px solid var(--verde);background:#fff}
@@ -129,8 +132,8 @@ td.bars svg{height:44px}
       <div><label>Ajudante 3</label><input data-c="aj3"></div>
       <div><label>Setor / rota</label><input data-c="setor"></div>
       <div><label>Km de saída</label><input data-c="km" inputmode="numeric"></div>
-      <div><label>Observação</label><input data-c="obs"></div>
     </div>
+    <div class="obsg"><label>Observação</label><textarea data-c="obs" rows="3" maxlength="600" placeholder="Informações gerais do romaneio: restrições de entrega, agendamentos, avarias, lacre, orientações ao motorista..."></textarea><span class="mini" id="obsCont"></span></div>
   </fieldset>
 
   <fieldset><legend>Bipagem (leitor de código de barras)</legend>
@@ -348,8 +351,9 @@ function renderCab(){
   $("bImp").disabled=$("bImpSSW").disabled=st!=="EMITIDO";
   $("bExp").disabled=!r.linhas.length;
   $("bInv").disabled=$("bManual").disabled=$("bCanc").disabled=st!=="ABERTO";
-  validarPlacas();
+  validarPlacas();contObs();
 }
+function contObs(){const o=R().obs||"";$("obsCont").textContent=`${o.length}/600 caracteres`}
 function validarPlacas(){document.querySelectorAll(".placa").forEach(el=>el.classList.toggle("invalido",!placaOk(el.value)))}
 function totais(r){
   const L=r.linhas;
@@ -400,7 +404,7 @@ function renderBaseInfo(){$("baseInfo").textContent=`${Object.keys(S.base).lengt
 document.querySelectorAll("[data-c]").forEach(el=>el.addEventListener("input",()=>{
   if(el.classList.contains("placa"))el.value=el.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");
   if(el.dataset.c==="cpf"){const v=el.value.replace(/\D/g,"").slice(0,11);el.value=v.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")}
-  R()[el.dataset.c]=el.value;salvar();validarPlacas();if(el.dataset.c==="tipo")renderCab();
+  R()[el.dataset.c]=el.value;salvar();validarPlacas();contObs();if(el.dataset.c==="tipo")renderCab();
 }));
 $("tab").addEventListener("input",e=>{const el=e.target;if(!el.dataset.f)return;R().linhas[el.dataset.i][el.dataset.f]=el.value;salvar();renderKpis();
   if(el.dataset.f==="situacao")renderTabela()});
@@ -464,7 +468,7 @@ function imprimir(tipo){
   const cab=`<div class="ph"><div><b>${tipo==="ssw"?"FOLHA PARA LANÇAMENTO NO SSW":esc(ti.toUpperCase())}</b><br>Transcherrer Transportadora · Contingência (SSW fora do ar)</div>
     <div style="text-align:right"><b>${esc(r.id)}</b><br>Unidade ${esc(r.unidade)} · ${r.status} · Emitido ${esc(r.emitidoEm||"-")}</div></div>
     <div class="pinfo"><div><span>Placa</span><br><b>${esc(r.placa)}</b></div><div><span>Carreta</span><br><b>${esc(r.carreta)}</b></div><div><span>Motorista</span><br><b>${esc(r.motorista)}</b></div><div><span>CPF</span><br><b>${esc(r.cpf)}</b></div><div><span>Destino / rota</span><br><b>${esc([r.destino,r.setor].filter(Boolean).join(" / "))}</b></div><div><span>Km saída</span><br><b>${esc(r.km)}</b></div>
-    <div><span>Conferente</span><br><b>${esc(r.conferente)}</b></div><div><span>Ajudantes</span><br><b>${esc([r.aj1,r.aj2,r.aj3].filter(Boolean).join(", "))}</b></div><div style="grid-column:span 4"><span>Observação</span><br><b>${esc(r.obs)}</b></div></div>
+    <div><span>Conferente</span><br><b>${esc(r.conferente)}</b></div><div><span>Ajudantes</span><br><b>${esc([r.aj1,r.aj2,r.aj3].filter(Boolean).join(", "))}</b></div><div style="grid-column:span 6;white-space:pre-wrap"><span>Observação</span><br><b>${esc(r.obs)||"-"}</b></div></div>
     <div class="pk"><span>LINHAS: ${t.lin}</span><span>CT-ES: ${t.cte}</span><span>NF-ES: ${t.nfe}</span><span>VOLUMES: ${fN(t.vol,0)}</span><span>PESO: ${fN(t.peso,1)} kg</span><span>VALOR NF: R$ ${fN(t.valor,2)}</span></div>`;
   let corpo;
   if(tipo==="ssw"){
