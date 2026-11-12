@@ -3,301 +3,517 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manifesto Manual - Transcherrer</title>
+<title>035 - Romaneio de Entregas (Contingência) - Transcherrer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
 <style>
-  :root{--verde:#1C9440;--verde2:#008a00;--laranja:#EB7623;--cinza:#f3f5f4;--borda:#d6dcd8;--texto:#1f2a24;--erro:#c62828}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--cinza);color:var(--texto)}
-  header{background:var(--verde);color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:5px solid var(--laranja)}
-  header h1{margin:0;font-size:22px;letter-spacing:.5px}
-  header .sub{font-size:13px;opacity:.9}
-  header .num{text-align:right;font-size:13px}
-  header .num b{font-size:18px;display:block}
-  main{max-width:1200px;margin:18px auto;padding:0 16px}
-  .card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:16px;margin-bottom:14px}
-  .card h2{margin:0 0 12px;font-size:14px;text-transform:uppercase;color:var(--verde);letter-spacing:.5px}
-  .grid{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:12px}
-  label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;margin-bottom:4px;color:#4a5750}
-  select{width:100%;padding:10px;border:1px solid var(--borda);border-radius:6px;font-size:15px;background:#fff;font-weight:600}
-  input{width:100%;padding:10px;border:1px solid var(--borda);border-radius:6px;font-size:15px}
-  input:focus{outline:2px solid var(--laranja);border-color:var(--laranja)}
-  input.invalido{border-color:var(--erro);background:#fff3f3}
-  .placa{text-transform:uppercase;font-family:Consolas,monospace;letter-spacing:1px}
-  .scanrow{display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:stretch}
-  #leitor{font-size:20px;font-family:Consolas,monospace;padding:16px;border:2px solid var(--verde)}
-  .total{background:var(--laranja);color:#fff;border-radius:8px;display:flex;flex-direction:column;justify-content:center;align-items:center}
-  .total span{font-size:12px;font-weight:700;text-transform:uppercase}
-  .total b{font-size:44px;line-height:1}
-  #msg{margin-top:10px;padding:10px 12px;border-radius:6px;font-weight:600;font-size:14px;display:none}
-  #msg.ok{display:block;background:#e7f5ea;color:var(--verde2);border:1px solid #b9e0c3}
-  #msg.err{display:block;background:#fdecec;color:var(--erro);border:1px solid #f3c1c1}
-  .acoes{display:flex;flex-wrap:wrap;gap:8px}
-  button{border:0;border-radius:6px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
-  .b-verde{background:var(--verde);color:#fff}.b-verde:hover{background:var(--verde2)}
-  .b-laranja{background:var(--laranja);color:#fff}
-  .b-cinza{background:#e3e7e5;color:var(--texto)}
-  .b-rem{background:transparent;color:var(--erro);padding:4px 8px;font-size:13px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{background:var(--verde);color:#fff;text-align:left;padding:8px;font-size:12px;text-transform:uppercase}
-  td{padding:7px 8px;border-bottom:1px solid #e6eae8}
-  tr:nth-child(even) td{background:#f8faf9}
-  td.chave{font-family:Consolas,monospace;font-size:13px;letter-spacing:.3px}
-  .vazio{text-align:center;color:#8a958f;padding:24px}
-  .rej{font-size:12px;color:#6b7670;margin-top:8px}
-  .rej li{margin:2px 0}
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:10}
-  .modal div{background:#fff;padding:22px;border-radius:8px;max-width:380px;text-align:center}
-  .modal p{margin:0 0 16px}
-  .print-only{display:none}
-  @media (max-width:800px){.grid{grid-template-columns:1fr 1fr}.scanrow{grid-template-columns:1fr}}
-  @media print{
-    @page{size:A4;margin:12mm}
-    body{background:#fff;font-size:11px}
-    header{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:8px 12px}
-    .no-print{display:none!important}
-    .print-only{display:block}
-    main{margin:0;max-width:none;padding:0}
-    .card{border:1px solid #999;border-radius:0;padding:10px;margin-bottom:8px}
-    input{border:0;padding:2px 0;font-size:13px;font-weight:700}
-    th{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:5px}
-    td{padding:4px 5px}
-    td.chave{font-size:11px}
-    .col-rem{display:none}
-    .total{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .assin{display:grid!important;grid-template-columns:1fr 1fr 1fr;gap:30px;margin-top:40px}
-    .assin div{border-top:1px solid #000;text-align:center;padding-top:4px;font-size:11px}
-  }
-  .assin{display:none}
+:root{--verde:#1C9440;--verde2:#17692f;--laranja:#EB7623;--creme:#fffdf2;--creme2:#fbf6dc;--borda:#d8cfa3;--txt:#1d1d1d;--azul:#1f4e9c;--erro:#c62828}
+*{box-sizing:border-box}
+body{margin:0;font-family:Verdana,Tahoma,Arial,sans-serif;font-size:12px;background:var(--creme);color:var(--txt)}
+.topo{background:#222;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:6px 12px}
+.topo .tit{font-size:15px;font-weight:bold;display:flex;align-items:center;gap:12px}
+.badge{background:var(--laranja);color:#fff;font-size:11px;font-weight:bold;padding:3px 8px;text-transform:uppercase}
+.topo .dir{display:flex;align-items:center;gap:12px;font-size:12px}
+.topo select,.topo input{background:#333;color:#fff;border:1px solid #555;padding:2px 4px;font-size:12px;width:70px;text-transform:uppercase}
+#salvo{color:#7ed492}
+.trilha{background:var(--creme2);padding:5px 12px;color:#555;border-bottom:1px solid var(--borda)}
+.abas{display:flex;gap:2px;padding:8px 12px 0;border-bottom:1px solid var(--borda);background:var(--creme)}
+.aba{padding:7px 14px;border:1px solid var(--borda);border-bottom:0;background:var(--creme2);cursor:pointer;font-weight:bold}
+.aba.on{background:#fff;position:relative;top:1px}
+.pagina{padding:10px 12px;display:none}.pagina.on{display:block}
+h2.rom{font-size:16px;margin:4px 0 8px;display:flex;align-items:center;gap:10px}
+.st{font-size:11px;color:#fff;padding:3px 8px;font-weight:bold}
+.st.ABERTO{background:var(--laranja)}.st.EMITIDO{background:var(--verde)}.st.CANCELADO{background:var(--erro)}
+.aberto-em{font-size:11px;color:#666;font-weight:normal}
+fieldset{border:1px solid var(--borda);background:#fffef8;margin:0 0 10px;padding:6px 10px 10px}
+legend{color:var(--verde);font-weight:bold;font-size:13px}
+.campos{display:grid;grid-template-columns:repeat(8,1fr);gap:4px 12px}
+.campos label{display:block;color:var(--azul);margin-bottom:2px}
+.campos .req::after{content:" *";color:var(--erro)}
+.campos input,.campos select{width:100%;padding:4px 5px;border:1px solid #bbb;font-size:12px;background:#fff}
+.campos input:focus,.campos select:focus{outline:2px solid #e8c34a}
+.c2{grid-column:span 2}
+input.invalido{border-color:var(--erro)!important;background:#fff3f3!important}
+.bip{display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:center}
+#leitor{width:100%;font-family:Consolas,"Courier New",monospace;font-size:20px;padding:16px 12px;border:2px solid var(--verde);background:#fff}
+#leitor:disabled{background:#eee;border-color:#aaa}
+.opcoes label{display:block;margin:4px 0;cursor:pointer}
+#msg{margin-top:8px;padding:7px 10px;background:#e3f3e6;border:1px solid #b9dcc0;color:var(--verde2);font-weight:bold}
+#msg.err{background:#fdecec;border-color:#f0bcbc;color:var(--erro)}
+#msg.warn{background:#fff4e0;border-color:#f3d39b;color:#9a5b00}
+.kpis{display:flex;flex-wrap:wrap;border:1px solid var(--borda);background:#fff;margin:10px 0}
+.kpi{padding:6px 14px;border-right:1px solid #eee;min-width:90px}
+.kpi span{display:block;font-size:10px;color:#555;text-transform:uppercase}
+.kpi b{font-size:18px}
+.botoes{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center}
+button{font-family:inherit;font-size:12px;padding:6px 12px;border:1px solid #b9b08a;background:#f4efd6;cursor:pointer}
+button:hover:not(:disabled){filter:brightness(.95)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.b-verde{background:var(--verde);border-color:var(--verde2);color:#fff;font-weight:bold}
+.b-laranja{background:#f6b27a;border-color:var(--laranja);color:#fff;font-weight:bold}
+.b-laranja:not(:disabled){background:var(--laranja)}
+.b-verm{background:#fff;border-color:var(--erro);color:var(--erro)}
+.mini{font-size:11px;color:#555}
+table{width:100%;border-collapse:collapse;background:#fff}
+th{background:#222;color:#fff;text-align:left;padding:6px 5px;font-size:11px;white-space:nowrap}
+td{padding:3px 4px;border-bottom:1px solid #eee;vertical-align:middle}
+tbody.lin{border-bottom:2px solid #d9d2b0;break-inside:avoid;page-break-inside:avoid}
+tbody.lin:nth-of-type(even) td{background:#fbfaf3}
+tbody.lin.ent td{background:#eef8f0}
+tbody.lin.oco td{background:#fdf0ef}
+td input,td select{width:100%;font-size:11px;padding:3px;border:1px solid #ccc;font-family:inherit;background:#fff}
+td input:disabled,td select:disabled{background:transparent;border-color:transparent;color:#000}
+td.n input{text-align:right}
+.chv{font-family:Consolas,monospace;font-size:10px;color:#555}
+td.bars{padding:2px 6px 6px;text-align:left}
+td.bars .bc{display:inline-block;margin-right:14px;text-align:center;vertical-align:top}
+td.bars .bc small{display:block;font-size:9px;color:#333;font-weight:bold}
+td.bars svg{height:44px}
+.x{border:0;background:none;color:var(--erro);font-weight:bold;padding:2px 6px}
+.vazio{text-align:center;color:#888;padding:20px}
+.ajuda{background:#fff;border:1px solid var(--borda);padding:12px 18px;line-height:1.6;max-width:980px}
+.ajuda h3{color:var(--verde);margin:14px 0 4px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:20}
+.modal>div{background:#fff;padding:20px;max-width:420px;text-align:center;border-top:4px solid var(--laranja)}
+.modal p{margin:0 0 14px;font-size:13px}
+#impressao{display:none}
+@media (max-width:1000px){.campos{grid-template-columns:repeat(4,1fr)}.bip{grid-template-columns:1fr}}
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  body{background:#fff;font-size:10px}
+  #app{display:none!important}
+  #impressao{display:block}
+  .ph{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--laranja);padding-bottom:4px;margin-bottom:6px}
+  .ph b{font-size:15px}
+  .pinfo{display:grid;grid-template-columns:repeat(6,1fr);gap:2px 10px;border:1px solid #999;padding:4px;margin-bottom:6px}
+  .pinfo span{color:#555}
+  .pk{display:flex;gap:14px;border:1px solid #999;padding:4px;margin-bottom:6px;font-weight:bold}
+  th,.st{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  th{padding:3px;font-size:9px}td{padding:2px 3px;font-size:9.5px}
+  td.bars svg{height:40px}
+  .assin{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:34px}
+  .assin div{border-top:1px solid #000;text-align:center;padding-top:3px}
+  .ck{display:inline-block;width:12px;height:12px;border:1px solid #000}
+}
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1 id="titulo">MANIFESTO MANUAL - MANIFESTO DE VIAGEM</h1>
-    <div class="sub">Transcherrer Transportadora - Conferência de carregamento por chave CT-e</div>
-  </div>
-  <div class="num">Manifesto nº<b id="numMan">-</b><span id="dataMan"></span></div>
-</header>
+<div id="app">
+<div class="topo">
+  <div class="tit"><span id="tituloTopo">035 - Romaneio de Entregas</span><span class="badge">Contingência · SSW fora do ar</span></div>
+  <div class="dir">Unidade <input id="unidade" list="unidades" maxlength="4"><datalist id="unidades"><option>VIX</option></datalist>
+    <span id="relogio"></span><span id="salvo">● não salvo</span></div>
+</div>
+<div class="trilha">Contingência / <span id="trilhaTipo">Entrega / 035 - Romaneio de Entregas</span></div>
+<div class="abas">
+  <div class="aba on" data-p="pRom">Romaneio</div>
+  <div class="aba" data-p="pDia">Romaneios do dia</div>
+  <div class="aba" data-p="pBase">Base de apoio</div>
+  <div class="aba" data-p="pAjuda">Como usar / lançar no SSW</div>
+</div>
 
-<main>
-  <section class="card">
-    <h2>Dados do carregamento</h2>
-    <div class="grid">
-      <div><label for="destino">Destino</label><input id="destino" placeholder="Cidade / Unidade de destino">
-        <label for="tipo" style="margin-top:10px">Tipo de documento</label>
-        <select id="tipo"><option>Manifesto de Viagem</option><option>Romaneio de Entrega</option></select></div>
-      <div><label for="motorista">Motorista</label><input id="motorista" placeholder="Nome completo"></div>
-      <div><label for="cavalo">Placa cavalo</label><input id="cavalo" class="placa" maxlength="8" placeholder="ABC1D23"></div>
-      <div><label for="carreta">Placa carreta</label><input id="carreta" class="placa" maxlength="8" placeholder="ABC1D23"></div>
+<!-- ================= ROMANEIO ================= -->
+<div class="pagina on" id="pRom">
+  <h2 class="rom"><span id="romId">-</span><span class="st" id="romSt">ABERTO</span><span class="aberto-em" id="romEm"></span></h2>
+  <fieldset><legend>Veículo e equipe</legend>
+    <div class="campos">
+      <div><label class="req">Placa</label><input data-c="placa" class="placa" maxlength="8" placeholder="ABC1D23"></div>
+      <div><label>Carreta</label><input data-c="carreta" class="placa" maxlength="8"></div>
+      <div class="c2"><label class="req">Motorista</label><input data-c="motorista"></div>
+      <div><label>CPF do motorista</label><input data-c="cpf" placeholder="000.000.000-00" maxlength="14"></div>
+      <div><label>Conferente</label><input data-c="conferente"></div>
+      <div><label>Ajudante 1</label><input data-c="aj1"></div>
+      <div><label>Ajudante 2</label><input data-c="aj2"></div>
+      <div class="c2"><label>Destino</label><input data-c="destino" placeholder="Cidade / unidade de destino"></div>
+      <div class="c2"><label>Tipo de documento</label><select data-c="tipo"><option>Romaneio de Entrega</option><option>Manifesto de Viagem</option></select></div>
+      <div><label>Ajudante 3</label><input data-c="aj3"></div>
+      <div><label>Setor / rota</label><input data-c="setor"></div>
+      <div><label>Km de saída</label><input data-c="km" inputmode="numeric"></div>
+      <div><label>Observação</label><input data-c="obs"></div>
     </div>
-  </section>
+  </fieldset>
 
-  <section class="card no-print">
-    <h2>Leitura das chaves CT-e</h2>
-    <div class="scanrow">
-      <div>
-        <input id="leitor" autocomplete="off" inputmode="numeric" placeholder="Bipe ou digite a chave de 44 dígitos e tecle Enter">
-        <div id="msg"></div>
-        <ul class="rej" id="rejeitados"></ul>
+  <fieldset><legend>Bipagem (leitor de código de barras)</legend>
+    <div class="bip">
+      <input id="leitor" autocomplete="off" inputmode="numeric" placeholder="Bipe a DACTE (CT-e) ou a DANFE (NF-e) — F2 volta para cá">
+      <div class="opcoes">
+        <label><input type="radio" name="modo" value="A"> CT-e abre a linha; NF-e vincula ao último CT-e</label>
+        <label><input type="radio" name="modo" value="B"> Cada NF-e vira uma linha (sem DACTE)</label>
+        <label><input type="checkbox" id="som"> Som de confirmação</label>
+        <label><input type="checkbox" id="mostraBarras"> Código de barras em cada linha</label>
       </div>
-      <div class="total"><span>Total documentos lidos</span><b id="total">0</b></div>
     </div>
-  </section>
+    <div id="msg">Pronto.</div>
+  </fieldset>
 
-  <section class="card no-print">
-    <div class="acoes">
-      <button class="b-verde" onclick="imprimir()">Imprimir manifesto</button>
-      <button class="b-laranja" onclick="exportarExcel()">Exportar Excel</button>
-      <button class="b-cinza" onclick="copiarChaves()">Copiar chaves</button>
-      <button class="b-cinza" onclick="abrirModal()">Novo manifesto</button>
+  <div class="kpis">
+    <div class="kpi"><span>Linhas</span><b id="kLin">0</b></div>
+    <div class="kpi"><span>CT-es / CTRCs</span><b id="kCte">0</b></div>
+    <div class="kpi"><span>NF-es</span><b id="kNfe">0</b></div>
+    <div class="kpi"><span>Volumes</span><b id="kVol">0</b></div>
+    <div class="kpi"><span>Peso kg</span><b id="kPeso">0,0</b></div>
+    <div class="kpi"><span>Valor NF R$</span><b id="kValor">0,00</b></div>
+    <div class="kpi"><span>Entregues</span><b id="kEnt">0</b></div>
+    <div class="kpi"><span>Ocorrências</span><b id="kOco">0</b></div>
+  </div>
+
+  <div class="botoes">
+    <button onclick="novoRomaneio()">Novo romaneio</button>
+    <button class="b-verde" id="bEmitir" onclick="emitir()">Emitir romaneio</button>
+    <button id="bReabrir" onclick="reabrir()">Reabrir</button>
+    <button id="bImp" onclick="imprimir('rom')">Imprimir romaneio</button>
+    <button id="bImpSSW" onclick="imprimir('ssw')">Imprimir folha p/ lançar no SSW</button>
+    <button class="b-laranja" id="bExp" onclick="exportarExcel()">Exportar Excel</button>
+    <button id="bInv" onclick="inverter()">Inverter sequência</button>
+    <button id="bManual" onclick="linhaManual()">+ Linha manual</button>
+    <button class="b-verm" id="bCanc" onclick="confirmar('Cancelar este romaneio? Ele ficará registrado como CANCELADO.',cancelar)">Cancelar romaneio</button>
+  </div>
+
+  <table id="tab">
+    <thead><tr><th>Seq</th><th>CT-e (nº / série)</th><th>CTRC SSW</th><th>NF-e</th><th>Remetente (CNPJ)</th><th>Destinatário</th><th>Cidade</th><th>Vol</th><th>Peso kg</th><th>Valor NF R$</th><th>Situação</th><th>Obs / ocorrência</th><th></th></tr></thead>
+    <tbody id="vazio"><tr><td colspan="13" class="vazio">Nenhum documento bipado.</td></tr></tbody>
+  </table>
+</div>
+
+<!-- ================= ROMANEIOS DO DIA ================= -->
+<div class="pagina" id="pDia">
+  <div class="botoes"><label><input type="checkbox" id="todosDias"> Mostrar todos os dias</label></div>
+  <table><thead><tr><th>Romaneio</th><th>Tipo</th><th>Situação</th><th>Aberto em</th><th>Placa</th><th>Motorista</th><th>Destino / rota</th><th>Linhas</th><th>Vol</th><th>Peso kg</th><th>Valor NF R$</th><th></th></tr></thead>
+  <tbody id="listaDia"></tbody></table>
+</div>
+
+<!-- ================= BASE DE APOIO ================= -->
+<div class="pagina" id="pBase">
+  <fieldset><legend>Base de apoio (dados que a chave não traz)</legend>
+    <p>A chave de 44 dígitos traz apenas UF, mês de emissão, CNPJ do emitente, modelo, série e número. <b>Volume, peso, valor da NF, CTRC, destinatário e cidade</b> vêm desta base: importe um relatório exportado do SSW (ou qualquer planilha/CSV) que tenha a <b>chave</b> do CT-e e/ou da NF-e em alguma coluna. Ao bipar, a linha é preenchida automaticamente.</p>
+    <p class="mini">Colunas reconhecidas pelo nome do cabeçalho: chave · ctrc · remetente · destinatário · cidade · volume(s) · peso · valor. Uma linha pode ter a chave do CT-e e a da NF-e: as duas são indexadas.</p>
+    <div class="botoes">
+      <label><button onclick="document.getElementById('arqBase').click()">Importar planilha / CSV</button></label>
+      <input type="file" id="arqBase" accept=".xlsx,.xls,.csv" style="display:none">
+      <button onclick="aplicarBase()">Reaplicar base no romaneio aberto</button>
+      <button class="b-verm" onclick="confirmar('Apagar toda a base de apoio deste computador?',limparBase)">Limpar base</button>
+      <span id="baseInfo" class="mini"></span>
     </div>
-  </section>
+  </fieldset>
+</div>
 
-  <section class="card print-only">
-    <b>TOTAL DOCUMENTOS LIDOS: <span id="totalPrint">0</span></b>
-  </section>
-
-  <section class="card">
-    <h2>Número chave CT-e</h2>
-    <table>
-      <thead><tr><th>#</th><th>Chave CT-e</th><th>Série</th><th>Nº CT-e</th><th>Emissão</th><th>CNPJ emitente</th><th>Leitura</th><th class="col-rem no-print"></th></tr></thead>
-      <tbody id="lista"><tr><td colspan="8" class="vazio">Nenhuma chave lida.</td></tr></tbody>
-    </table>
-    <div class="assin">
-      <div>Conferente</div><div>Motorista</div><div>Data / Hora saída</div>
-    </div>
-  </section>
-</main>
-
-<div class="modal" id="modal"><div>
-  <p>Iniciar novo manifesto? Os dados e chaves atuais serão apagados.</p>
-  <button class="b-laranja" onclick="novoManifesto()">Confirmar</button>
-  <button class="b-cinza" onclick="fecharModal()">Cancelar</button>
+<!-- ================= AJUDA ================= -->
+<div class="pagina" id="pAjuda"><div class="ajuda">
+  <h3>1. Abrir o romaneio</h3>
+  Confira a <b>Unidade</b> no topo, escolha o tipo (Romaneio de Entrega ou Manifesto de Viagem) e preencha <b>Placa</b> e <b>Motorista</b> (obrigatórios). O número é gerado sozinho: CT-UNIDADE-AAAAMMDD-sequência.
+  <h3>2. Bipar</h3>
+  Bipe a DACTE ou a DANFE no campo grande (F2 volta o cursor para lá). Cada chave é validada: 44 dígitos, UF, modelo (57 = CT-e, 55 = NF-e) e dígito verificador. Chave repetida é recusada.<br>
+  <b>CT-e abre a linha; NF-e vincula ao último CT-e:</b> bipe a DACTE e em seguida as DANFEs dela.<br>
+  <b>Cada NF-e vira uma linha:</b> para carga sem DACTE impressa; cada DANFE é uma entrega.
+  <h3>3. Volume, peso e valor</h3>
+  Vêm da <b>Base de apoio</b> (relatório SSW importado). Sem base, digite direto na linha.
+  <h3>4. Emitir e imprimir</h3>
+  <b>Emitir romaneio</b> confere os dados e trava a bipagem. Depois disso ficam liberados <b>Imprimir romaneio</b> (vai com o motorista) e a <b>Folha p/ lançar no SSW</b>. Para corrigir, use <b>Reabrir</b>.
+  <h3>5. Retorno da rota</h3>
+  Mesmo emitido, as colunas <b>Situação</b> e <b>Obs / ocorrência</b> continuam editáveis para registrar entregas e ocorrências.
+  <h3>6. Lançar no SSW quando voltar</h3>
+  Imprima a <b>Folha p/ lançar no SSW</b>: cada documento sai com o <b>código de barras da chave</b>. Na tela do SSW, bipe direto da folha e marque o quadrado "Lançado". O Excel exportado também traz todas as chaves.
+  <h3>Onde ficam os dados</h3>
+  Ficam salvos no navegador deste computador (indicador "salvo" no topo). Exporte o Excel ao final do turno para guardar uma cópia.
 </div></div>
+</div>
+
+<div id="impressao"></div>
+
+<div class="modal" id="modal"><div><p id="modalTxt"></p>
+  <button class="b-laranja" id="modalOk">Confirmar</button> <button onclick="fecharModal()">Voltar</button></div></div>
 
 <script>
 const UF={"11":"RO","12":"AC","13":"AM","14":"RR","15":"PA","16":"AP","17":"TO","21":"MA","22":"PI","23":"CE","24":"RN","25":"PB","26":"PE","27":"AL","28":"SE","29":"BA","31":"MG","32":"ES","33":"RJ","35":"SP","41":"PR","42":"SC","43":"RS","50":"MS","51":"MT","52":"GO","53":"DF"};
-let estado={num:"",data:"",tipo:"Manifesto de Viagem",destino:"",motorista:"",cavalo:"",carreta:"",chaves:[]};
-let rejeitados=[];
+const MOD={"57":"CT-e","55":"NF-e"};
+const SITS=["Pendente","Entregue","Ocorrência","Devolvido"];
+const KEY="romaneio035_v1";
 const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const p2=n=>String(n).padStart(2,"0");
+const hoje=()=>{const d=new Date();return `${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}`};
+const agora=()=>new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
 
-function salvar(){try{localStorage.setItem("manifestoManualTC",JSON.stringify(estado))}catch(e){}}
-function carregar(){try{const s=localStorage.getItem("manifestoManualTC");if(s)estado=JSON.parse(s)}catch(e){}}
-function gerarNumero(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `MM${String(d.getFullYear()).slice(2)}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`}
-function agora(){return new Date().toLocaleString("pt-BR")}
+let S={romaneios:{},atual:null,base:{},modo:"B",som:true,barras:true,unidade:"VIX"};
+function carregar(){try{const s=localStorage.getItem(KEY);if(s)S=Object.assign(S,JSON.parse(s))}catch(e){}}
+function salvar(){try{localStorage.setItem(KEY,JSON.stringify(S));$("salvo").textContent="● salvo "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}catch(e){$("salvo").textContent="● não foi possível salvar"}}
+const R=()=>S.romaneios[S.atual];
+const aberto=()=>R()&&R().status==="ABERTO";
 
-function dvValido(ch){
-  let soma=0,peso=2;
-  for(let i=42;i>=0;i--){soma+=Number(ch[i])*peso;peso=peso===9?2:peso+1}
-  const r=soma%11,dv=r<2?0:11-r;
-  return dv===Number(ch[43]);
-}
-function validarChave(ch){
+/* ---------- chave ---------- */
+function dvOk(ch){let s=0,p=2;for(let i=42;i>=0;i--){s+=Number(ch[i])*p;p=p===9?2:p+1}const r=s%11;return (r<2?0:11-r)===Number(ch[43])}
+function validar(ch){
   if(ch.length!==44)return `Chave com ${ch.length} dígitos (esperado 44)`;
   if(!UF[ch.slice(0,2)])return "Código de UF inválido";
-  if(ch.slice(20,22)!=="57")return `Modelo ${ch.slice(20,22)} não é CT-e (57)`;
-  if(!dvValido(ch))return "Dígito verificador inválido";
-  if(estado.chaves.some(c=>c.chave===ch))return "Chave já lida neste manifesto (duplicada)";
+  const m=Number(ch.slice(4,6));if(m<1||m>12)return "Mês de emissão inválido";
+  if(!MOD[ch.slice(20,22)])return `Modelo ${ch.slice(20,22)} não é CT-e (57) nem NF-e (55)`;
+  if(!dvOk(ch))return "Dígito verificador inválido";
   return null;
 }
-function fmtChave(c){return c.replace(/(\d{4})(?=\d)/g,"$1 ")}
-function fmtCnpj(c){return c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5")}
-function decompor(ch){
-  return{chave:ch,uf:UF[ch.slice(0,2)],emissao:ch.slice(4,6)+"/20"+ch.slice(2,4),cnpj:fmtCnpj(ch.slice(6,20)),
-    serie:String(Number(ch.slice(22,25))),numero:String(Number(ch.slice(25,34))),hora:new Date().toLocaleTimeString("pt-BR")};
+const fCnpj=c=>c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5");
+const doc=ch=>({chave:ch,modelo:MOD[ch.slice(20,22)],num:String(Number(ch.slice(25,34))),serie:String(Number(ch.slice(22,25))),cnpj:fCnpj(ch.slice(6,20)),emissao:ch.slice(4,6)+"/20"+ch.slice(2,4)});
+function chaveJaUsada(ch){
+  for(const r of Object.values(S.romaneios)){
+    if(r.status==="CANCELADO")continue;
+    for(const l of r.linhas){if((l.cte&&l.cte.chave===ch)||l.nfes.some(n=>n.chave===ch))return r.id}
+  }return null;
 }
 
-let audio;
-function beep(ok){
-  try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();
-    const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);
-    o.frequency.value=ok?1200:300;g.gain.value=.15;o.start();o.stop(audio.currentTime+(ok?.08:.35));}catch(e){}
+/* ---------- numeros ---------- */
+function num(v){if(v===""||v==null)return 0;if(typeof v==="number")return v;let s=String(v).trim().replace(/[R$\s]/g,"");if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");const n=parseFloat(s);return isNaN(n)?0:n}
+const fN=(n,d)=>Number(n).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* ---------- som / msg ---------- */
+let ac;function beep(ok){if(!S.som)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=ok?1250:280;g.gain.value=.15;o.start();o.stop(ac.currentTime+(ok?.08:.4))}catch(e){}}
+function msg(t,tipo){const m=$("msg");m.textContent=t;m.className=tipo||""}
+
+/* ---------- romaneio ---------- */
+function novoId(un){const pre=`CT-${un}-${hoje()}-`;const n=Object.keys(S.romaneios).filter(k=>k.startsWith(pre)).length+1;return pre+n}
+function criarRomaneio(base){
+  const un=(S.unidade||"VIX").toUpperCase(),id=novoId(un);
+  S.romaneios[id]={id,unidade:un,dia:hoje(),tipo:base?base.tipo:"Romaneio de Entrega",status:"ABERTO",abertoEm:agora(),emitidoEm:"",
+    placa:"",carreta:"",motorista:"",cpf:"",conferente:"",aj1:"",aj2:"",aj3:"",destino:"",setor:"",km:"",obs:"",linhas:[]};
+  S.atual=id;salvar();return id;
 }
-function mensagem(txt,ok){const m=$("msg");m.textContent=txt;m.className=ok?"ok":"err"}
+function novoRomaneio(){const r=R();criarRomaneio(r);renderTudo();msg(`Romaneio ${S.atual} aberto. Preencha placa e motorista e comece a bipar.`);document.querySelector('[data-c="placa"]').focus()}
+function abrirRomaneio(id){S.atual=id;salvar();renderTudo();trocaAba("pRom")}
 
-function processar(){
-  const bruto=$("leitor").value,ch=bruto.replace(/\D/g,"");
-  $("leitor").value="";
-  if(!ch)return;
-  const erro=validarChave(ch);
-  if(erro){
-    beep(false);mensagem("REJEITADA: "+erro,false);
-    rejeitados.unshift(`${new Date().toLocaleTimeString("pt-BR")} - ${ch||bruto} - ${erro}`);
-    rejeitados=rejeitados.slice(0,5);renderRej();return;
-  }
-  const d=decompor(ch);estado.chaves.push(d);salvar();render();
-  beep(true);mensagem(`OK: CT-e ${d.numero} série ${d.serie} adicionado (${estado.chaves.length})`,true);
-}
-function remover(i){estado.chaves.splice(i,1);salvar();render();$("leitor").focus()}
-
-function renderRej(){$("rejeitados").innerHTML=rejeitados.map(r=>`<li>${r}</li>`).join("")}
-function render(){
-  $("numMan").textContent=estado.num;$("dataMan").textContent=estado.data;
-  ["destino","motorista","cavalo","carreta"].forEach(k=>$(k).value=estado[k]||"");
-  $("tipo").value=estado.tipo||"Manifesto de Viagem";$("titulo").textContent="MANIFESTO MANUAL - "+$("tipo").value.toUpperCase();
-  $("total").textContent=estado.chaves.length;$("totalPrint").textContent=estado.chaves.length;
-  const tb=$("lista");
-  if(!estado.chaves.length){tb.innerHTML='<tr><td colspan="8" class="vazio">Nenhuma chave lida.</td></tr>';return}
-  tb.innerHTML=estado.chaves.map((c,i)=>`<tr><td>${i+1}</td><td class="chave">${fmtChave(c.chave)}</td><td>${c.serie}</td><td>${c.numero}</td><td>${c.emissao}</td><td>${c.cnpj}</td><td>${c.hora}</td><td class="col-rem no-print"><button class="b-rem" onclick="remover(${i})">Remover</button></td></tr>`).join("");
-  validarPlacas();
-}
-function placaOk(p){return !p||/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(p.replace("-",""))}
-function validarPlacas(){["cavalo","carreta"].forEach(k=>$(k).classList.toggle("invalido",!placaOk($(k).value)))}
-
-["destino","motorista","cavalo","carreta"].forEach(k=>{
-  $(k).addEventListener("input",e=>{
-    if(k==="cavalo"||k==="carreta")e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");
-    estado[k]=e.target.value;salvar();validarPlacas();
-  });
-});
-$("tipo").addEventListener("change",e=>{estado.tipo=e.target.value;salvar();render()});
-$("leitor").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key==="Tab"){e.preventDefault();processar()}});
-
-function checarCabecalho(){
-  const falta=[];if(!estado.destino)falta.push("Destino");if(!estado.motorista)falta.push("Motorista");
-  if(!estado.cavalo)falta.push("Placa cavalo");
-  if(!placaOk(estado.cavalo)||!placaOk(estado.carreta))falta.push("Placa em formato inválido");
-  if(!estado.chaves.length)falta.push("Nenhuma chave lida");
-  if(falta.length){mensagem("Pendências: "+falta.join(", "),false);return false}
+function linhaVazia(){return{cte:null,nfes:[],cteManual:"",ctrc:"",remetente:"",destinatario:"",cidade:"",vol:"",peso:"",valor:"",situacao:"Pendente",obs:"",fonte:"",hora:new Date().toLocaleTimeString("pt-BR")}}
+function preencherDaBase(l,ch,somar){
+  const b=S.base[ch];if(!b)return false;
+  ["ctrc","remetente","destinatario","cidade"].forEach(k=>{if(!l[k]&&b[k])l[k]=b[k]});
+  ["vol","peso","valor"].forEach(k=>{if(b[k]!==""&&b[k]!=null){l[k]=somar&&l[k]!==""?fN(num(l[k])+num(b[k]),k==="vol"?0:2):fN(num(b[k]),k==="vol"?0:2)}});
   return true;
 }
-let DL=null;
-try{if(window.claude&&window.claude.use)window.claude.use("downloads").then(d=>{DL=d}).catch(()=>{})}catch(e){}
-async function salvarArquivo(nome,data){
-  if(DL){
-    try{await DL.save({filename:nome,data});mensagem("Arquivo salvo: "+nome,true);return true}
-    catch(e){if(e&&e.code==="declined"){mensagem("Download cancelado.",false);return false}}
-  }
-  try{baixar(data instanceof Blob?data:new Blob([data]),nome);mensagem("Arquivo gerado: "+nome,true);return true}
-  catch(e){mensagem("Download indisponível neste ambiente.",false);return false}
-}
-function htmlImpressao(){
-  const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  const linhas=estado.chaves.map((c,i)=>`<tr><td>${i+1}</td><td class="k">${fmtChave(c.chave)}</td><td>${c.serie}</td><td>${c.numero}</td><td>${c.emissao}</td><td>${c.cnpj}</td><td>${c.hora}</td></tr>`).join("");
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Manifesto ${esc(estado.num)}</title><style>
-@page{size:A4;margin:12mm}body{font-family:Arial,sans-serif;font-size:11px;color:#111}
-.h{background:#1C9440;color:#fff;padding:8px 12px;border-bottom:4px solid #EB7623;display:flex;justify-content:space-between;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.h b{font-size:18px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #999;padding:4px 5px;text-align:left}
-th{background:#1C9440;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.k{font-family:Consolas,monospace}
-.cab td{font-size:13px}.cab th{font-size:10px}.tot{margin-top:8px;font-size:14px;font-weight:bold}
-.as{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;margin-top:50px}.as div{border-top:1px solid #000;text-align:center;padding-top:4px}
-</style></head><body onload="window.print()">
-<div class="h"><div><b>MANIFESTO MANUAL</b><br>${esc((estado.tipo||"Manifesto de Viagem").toUpperCase())} - Transcherrer Transportadora</div><div style="text-align:right">Manifesto nº <b>${esc(estado.num)}</b><br>${esc(estado.data)}</div></div>
-<table class="cab"><tr><th>DESTINO</th><th>MOTORISTA</th><th>PLACA CAVALO</th><th>PLACA CARRETA</th></tr>
-<tr><td>${esc(estado.destino)}</td><td>${esc(estado.motorista)}</td><td>${esc(estado.cavalo)}</td><td>${esc(estado.carreta)}</td></tr></table>
-<div class="tot">TOTAL DOCUMENTOS LIDOS: ${estado.chaves.length}</div>
-<table><tr><th>#</th><th>NUMERO CHAVE CT-E</th><th>SÉRIE</th><th>Nº CT-E</th><th>EMISSÃO</th><th>CNPJ EMITENTE</th><th>LEITURA</th></tr>${linhas}</table>
-<div class="as"><div>Conferente</div><div>Motorista</div><div>Data / Hora saída</div></div></body></html>`;
-}
-async function imprimir(){
-  if(!checarCabecalho())return;
-  if(DL){if(await salvarArquivo(nomeArquivo("html"),htmlImpressao()))mensagem("Abra o arquivo baixado: ele abre já pronto para imprimir.",true);return}
-  try{window.print()}catch(e){salvarArquivo(nomeArquivo("html"),htmlImpressao())}
-}
 
-function linhasPlanilha(){
-  const a=[["Manifesto manual","","","","","",""],["Nº manifesto",estado.num,"Data",estado.data,"Tipo",estado.tipo||"Manifesto de Viagem",""],[],
-    ["DESTINO","MOTORISTA","PLACA CAVALO","PLACA CARRETA"],[estado.destino,estado.motorista,estado.cavalo,estado.carreta],[],
-    ["TOTAL DOCUMENTOS LIDOS",estado.chaves.length],[],
-    ["#","NUMERO CHAVE CT-E","SÉRIE","Nº CT-E","EMISSÃO","CNPJ EMITENTE","HORA LEITURA"]];
-  estado.chaves.forEach((c,i)=>a.push([i+1,c.chave,c.serie,c.numero,c.emissao,c.cnpj,c.hora]));
-  return a;
-}
-function nomeArquivo(ext){return `${(estado.tipo||"Manifesto").startsWith("Romaneio")?"Romaneio":"ManifestoViagem"}_${estado.num}_${(estado.destino||"destino").replace(/[^\w]+/g,"_")}.${ext}`}
-function baixar(blob,nome){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();a.remove()}
-function exportarExcel(){
-  if(!estado.chaves.length){mensagem("Nenhuma chave para exportar.",false);return}
-  const linhas=linhasPlanilha();
-  if(window.XLSX){
-    const ws=XLSX.utils.aoa_to_sheet(linhas);
-    for(let r=9;r<linhas.length;r++){const ref=XLSX.utils.encode_cell({r,c:1});if(ws[ref]){ws[ref].t="s";ws[ref].z="@"}}
-    ws["B7"]={t:"n",v:estado.chaves.length,f:"COUNTA(B10:B5000)"};
-    ws["!cols"]=[{wch:24},{wch:48},{wch:16},{wch:16},{wch:10},{wch:20},{wch:12}];
-    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}}];
-    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Manifesto");
-    const buf=XLSX.write(wb,{bookType:"xlsx",type:"array"});
-    salvarArquivo(nomeArquivo("xlsx"),new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+function bipar(){
+  const bruto=$("leitor").value,ch=bruto.replace(/\D/g,"");$("leitor").value="";
+  if(!ch)return;
+  const r=R();
+  if(r.status!=="ABERTO"){beep(false);msg(`Romaneio ${r.status.toLowerCase()}: use Reabrir ou Novo romaneio para bipar.`,"err");return}
+  if(!r.placa||!r.motorista){beep(false);msg("Preencha Placa e Motorista antes de bipar.","err");return}
+  const e=validar(ch);if(e){beep(false);msg(`REJEITADA: ${e} — ${ch}`,"err");return}
+  const usado=chaveJaUsada(ch);if(usado){beep(false);msg(`REJEITADA: chave já bipada no romaneio ${usado}`,"err");return}
+  const d=doc(ch);
+  if(d.modelo==="CT-e"){
+    const l=linhaVazia();l.cte={chave:ch,num:d.num,serie:d.serie};
+    if(preencherDaBase(l,ch,false))l.fonte="cte";
+    r.linhas.push(l);salvar();renderTabela();beep(true);
+    msg(`OK: CT-e ${d.num}/${d.serie} — linha ${r.linhas.length}${l.fonte?" (dados da base)":""}`+(S.modo==="A"?". Agora bipe as DANFEs dele.":""));
   }else{
-    const csv=linhas.map(l=>l.map((v,i)=>i===1&&/^\d{44}$/.test(v)?`="${v}"`:`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\r\n");
-    salvarArquivo(nomeArquivo("csv"),new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"}));
+    const n={chave:ch,num:d.num,serie:d.serie,cnpj:d.cnpj};
+    if(S.modo==="A"){
+      const l=[...r.linhas].reverse().find(x=>x.cte);
+      if(!l){beep(false);msg("Modo 'NF-e vincula ao último CT-e': bipe primeiro a DACTE (ou mude para 'Cada NF-e vira uma linha').","warn");return}
+      l.nfes.push(n);if(!l.remetente)l.remetente=d.cnpj;
+      if(l.fonte!=="cte"&&preencherDaBase(l,ch,true))l.fonte="nfe";
+      salvar();renderTabela();beep(true);msg(`OK: NF-e ${d.num} vinculada ao CT-e ${l.cte.num} (${l.nfes.length} NF-e)`);
+    }else{
+      const l=linhaVazia();l.nfes.push(n);l.remetente=d.cnpj;
+      if(preencherDaBase(l,ch,false))l.fonte="nfe";
+      r.linhas.push(l);salvar();renderTabela();beep(true);msg(`OK: NF-e ${d.num}/${d.serie} — linha ${r.linhas.length}${l.fonte?" (dados da base)":""}`);
+    }
   }
 }
-function copiarChaves(){
-  const txt=estado.chaves.map(c=>c.chave).join("\n");
-  if(!txt){mensagem("Nenhuma chave para copiar.",false);return}
-  navigator.clipboard.writeText(txt).then(()=>mensagem(`${estado.chaves.length} chaves copiadas.`,true)).catch(()=>mensagem("Não foi possível copiar.",false));
+function linhaManual(){if(!aberto())return;R().linhas.push(linhaVazia());salvar();renderTabela();msg("Linha manual incluída: preencha CT-e, CTRC e demais dados na tabela.","warn")}
+function removerLinha(i){if(!aberto())return;R().linhas.splice(i,1);salvar();renderTabela()}
+function inverter(){if(!aberto())return;R().linhas.reverse();salvar();renderTabela();msg("Sequência invertida.")}
+
+const placaOk=p=>!p||/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(p.replace("-",""));
+function emitir(){
+  const r=R(),f=[];
+  if(!r.placa)f.push("Placa");else if(!placaOk(r.placa))f.push("Placa em formato inválido");
+  if(r.carreta&&!placaOk(r.carreta))f.push("Carreta em formato inválido");
+  if(!r.motorista)f.push("Motorista");
+  if(!r.linhas.length)f.push("nenhum documento bipado");
+  if(f.length){beep(false);msg("Não foi possível emitir: "+f.join(", "),"err");return}
+  r.status="EMITIDO";r.emitidoEm=agora();salvar();renderTudo();msg(`Romaneio ${r.id} emitido. Imprima o romaneio e a folha para lançar no SSW.`)
 }
-function abrirModal(){$("modal").style.display="flex"}
-function fecharModal(){$("modal").style.display="none";$("leitor").focus()}
-function novoManifesto(){
-  estado={num:gerarNumero(),data:agora(),tipo:estado.tipo||"Manifesto de Viagem",destino:"",motorista:"",cavalo:"",carreta:"",chaves:[]};
-  rejeitados=[];renderRej();$("msg").className="";salvar();render();fecharModal();$("destino").focus();
+function reabrir(){const r=R();r.status="ABERTO";r.emitidoEm="";salvar();renderTudo();msg("Romaneio reaberto para correção.","warn")}
+function cancelar(){const r=R();r.status="CANCELADO";salvar();renderTudo();msg(`Romaneio ${r.id} cancelado. As chaves dele ficam livres para outro romaneio.`,"warn")}
+
+/* ---------- render ---------- */
+function renderTudo(){renderCab();renderTabela();renderDia();renderBaseInfo()}
+function renderCab(){
+  const r=R();
+  $("romId").textContent="Romaneio "+r.id;$("romSt").textContent=r.status;$("romSt").className="st "+r.status;
+  $("romEm").textContent=`Aberto em ${r.abertoEm}`+(r.emitidoEm?` · Emitido em ${r.emitidoEm}`:"");
+  document.querySelectorAll("[data-c]").forEach(el=>{el.value=r[el.dataset.c]||(el.tagName==="SELECT"?el.options[0].value:"");el.disabled=r.status!=="ABERTO"});
+  const rom=(r.tipo||"").startsWith("Romaneio");
+  $("tituloTopo").textContent=rom?"035 - Romaneio de Entregas":"Manifesto de Viagem";
+  $("trilhaTipo").textContent=rom?"Entrega / 035 - Romaneio de Entregas":"Transferência / Manifesto de Viagem";
+  $("leitor").disabled=r.status!=="ABERTO";
+  const st=r.status;
+  $("bEmitir").disabled=st!=="ABERTO";$("bReabrir").disabled=st==="ABERTO";
+  $("bImp").disabled=$("bImpSSW").disabled=st!=="EMITIDO";
+  $("bExp").disabled=!r.linhas.length;
+  $("bInv").disabled=$("bManual").disabled=$("bCanc").disabled=st!=="ABERTO";
+  validarPlacas();
+}
+function validarPlacas(){document.querySelectorAll(".placa").forEach(el=>el.classList.toggle("invalido",!placaOk(el.value)))}
+function totais(r){
+  const L=r.linhas;
+  return{lin:L.length,cte:L.filter(l=>l.cte||l.cteManual).length,nfe:L.reduce((s,l)=>s+l.nfes.length,0),
+    vol:L.reduce((s,l)=>s+num(l.vol),0),peso:L.reduce((s,l)=>s+num(l.peso),0),valor:L.reduce((s,l)=>s+num(l.valor),0),
+    ent:L.filter(l=>l.situacao==="Entregue").length,oco:L.filter(l=>l.situacao==="Ocorrência"||l.situacao==="Devolvido").length};
+}
+function renderKpis(){const t=totais(R());$("kLin").textContent=t.lin;$("kCte").textContent=t.cte;$("kNfe").textContent=t.nfe;
+  $("kVol").textContent=fN(t.vol,0);$("kPeso").textContent=fN(t.peso,1);$("kValor").textContent=fN(t.valor,2);$("kEnt").textContent=t.ent;$("kOco").textContent=t.oco}
+function barrasHtml(l,pref){
+  const ks=[];if(l.cte)ks.push(["DACTE "+l.cte.num,l.cte.chave]);l.nfes.forEach(n=>ks.push(["DANFE "+n.num,n.chave]));
+  return ks.map((k,j)=>`<span class="bc"><small>${k[0]}</small><svg data-bc="${k[1]}" id="${pref}${j}"></svg></span>`).join("");
+}
+function desenharBarras(root){
+  root.querySelectorAll("svg[data-bc]").forEach(sv=>{
+    if(window.JsBarcode){try{JsBarcode(sv,sv.dataset.bc,{format:"CODE128C",width:1.4,height:40,displayValue:true,fontSize:11,font:"Consolas",margin:2,textMargin:1});return}catch(e){}}
+    sv.outerHTML=`<span class="chv">${sv.dataset.bc}</span>`;
+  });
+}
+function renderTabela(){
+  const r=R(),ab=r.status==="ABERTO",ed=r.status!=="CANCELADO";
+  const tab=$("tab");tab.querySelectorAll("tbody.lin").forEach(b=>b.remove());
+  $("vazio").style.display=r.linhas.length?"none":"";
+  const inp=(i,f,v,dis,cls)=>`<td class="${cls||""}"><input data-i="${i}" data-f="${f}" value="${esc(v)}" ${dis?"disabled":""}></td>`;
+  r.linhas.forEach((l,i)=>{
+    const tb=document.createElement("tbody");
+    tb.className="lin"+(l.situacao==="Entregue"?" ent":(l.situacao==="Ocorrência"||l.situacao==="Devolvido")?" oco":"");
+    const cteCel=l.cte?`<td><b>${l.cte.num} / ${l.cte.serie}</b></td>`:inp(i,"cteManual",l.cteManual,!ab);
+    const nfCel=l.nfes.length?`<td>${l.nfes.map(n=>n.num).join(", ")}${l.nfes.length>1?` <span class="mini">(${l.nfes.length})</span>`:""}</td>`:`<td class="mini">-</td>`;
+    tb.innerHTML=`<tr><td><b>${i+1}</b></td>${cteCel}${inp(i,"ctrc",l.ctrc,!ab)}${nfCel}${inp(i,"remetente",l.remetente,!ab)}${inp(i,"destinatario",l.destinatario,!ab)}${inp(i,"cidade",l.cidade,!ab)}
+      ${inp(i,"vol",l.vol,!ab,"n")}${inp(i,"peso",l.peso,!ab,"n")}${inp(i,"valor",l.valor,!ab,"n")}
+      <td><select data-i="${i}" data-f="situacao" ${ed?"":"disabled"}>${SITS.map(s=>`<option ${s===l.situacao?"selected":""}>${s}</option>`).join("")}</select></td>
+      ${inp(i,"obs",l.obs,!ed)}<td>${ab?`<button class="x" title="Remover linha" onclick="removerLinha(${i})">✕</button>`:""}</td></tr>`
+      +(S.barras&&(l.cte||l.nfes.length)?`<tr><td></td><td colspan="12" class="bars">${barrasHtml(l,"b"+i+"_")}</td></tr>`:"");
+    tab.appendChild(tb);
+  });
+  desenharBarras(tab);renderKpis();renderCab();
+}
+function renderDia(){
+  const todos=$("todosDias").checked,d=hoje();
+  const lst=Object.values(S.romaneios).filter(r=>todos||r.dia===d).sort((a,b)=>b.id.localeCompare(a.id,undefined,{numeric:true}));
+  $("listaDia").innerHTML=lst.length?lst.map(r=>{const t=totais(r);return `<tr><td><b>${esc(r.id)}</b></td><td>${esc(r.tipo)}</td><td><span class="st ${r.status}">${r.status}</span></td><td>${esc(r.abertoEm)}</td><td>${esc(r.placa)}</td><td>${esc(r.motorista)}</td><td>${esc([r.destino,r.setor].filter(Boolean).join(" / "))}</td><td>${t.lin}</td><td>${fN(t.vol,0)}</td><td>${fN(t.peso,1)}</td><td>${fN(t.valor,2)}</td><td><button onclick="abrirRomaneio('${esc(r.id)}')">Abrir</button></td></tr>`}).join("")
+    :`<tr><td colspan="12" class="vazio">Nenhum romaneio${todos?"":" hoje"}.</td></tr>`;
+}
+function renderBaseInfo(){$("baseInfo").textContent=`${Object.keys(S.base).length} chave(s) na base deste computador.`}
+
+/* ---------- eventos ---------- */
+document.querySelectorAll("[data-c]").forEach(el=>el.addEventListener("input",()=>{
+  if(el.classList.contains("placa"))el.value=el.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");
+  if(el.dataset.c==="cpf"){const v=el.value.replace(/\D/g,"").slice(0,11);el.value=v.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})(\d{1,2})$/,"$1-$2")}
+  R()[el.dataset.c]=el.value;salvar();validarPlacas();if(el.dataset.c==="tipo")renderCab();
+}));
+$("tab").addEventListener("input",e=>{const el=e.target;if(!el.dataset.f)return;R().linhas[el.dataset.i][el.dataset.f]=el.value;salvar();renderKpis();
+  if(el.dataset.f==="situacao")renderTabela()});
+$("tab").addEventListener("change",e=>{const el=e.target,f=el.dataset.f;if(!["vol","peso","valor"].includes(f)||el.value==="")return;
+  const v=fN(num(el.value),f==="vol"?0:2);el.value=v;R().linhas[el.dataset.i][f]=v;salvar();renderKpis()});
+$("leitor").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key==="Tab"){e.preventDefault();bipar()}});
+document.addEventListener("keydown",e=>{if(e.key==="F2"){e.preventDefault();trocaAba("pRom");$("leitor").focus()}});
+document.querySelectorAll('input[name="modo"]').forEach(el=>el.addEventListener("change",()=>{S.modo=el.value;salvar()}));
+$("som").addEventListener("change",e=>{S.som=e.target.checked;salvar()});
+$("mostraBarras").addEventListener("change",e=>{S.barras=e.target.checked;salvar();renderTabela()});
+$("unidade").addEventListener("change",e=>{S.unidade=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"")||"VIX";e.target.value=S.unidade;salvar();msg(`Unidade ${S.unidade}: vale para os próximos romaneios.`)});
+$("todosDias").addEventListener("change",renderDia);
+document.querySelectorAll(".aba").forEach(a=>a.addEventListener("click",()=>trocaAba(a.dataset.p)));
+function trocaAba(p){document.querySelectorAll(".aba").forEach(a=>a.classList.toggle("on",a.dataset.p===p));document.querySelectorAll(".pagina").forEach(x=>x.classList.toggle("on",x.id===p));if(p==="pDia")renderDia()}
+
+/* ---------- modal ---------- */
+function confirmar(t,fn){$("modalTxt").textContent=t;$("modal").style.display="flex";$("modalOk").onclick=()=>{fecharModal();fn()}}
+function fecharModal(){$("modal").style.display="none"}
+
+/* ---------- base de apoio ---------- */
+$("arqBase").addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(!window.XLSX){msg("Biblioteca de planilha não carregou (verifique a internet).","err");return}
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:"array"});let novas=0,linhas=0;
+    const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+    wb.SheetNames.forEach(sn=>{
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:""});
+      let h=-1,c={};
+      for(let i=0;i<Math.min(rows.length,40)&&h<0;i++){
+        const L=rows[i].map(norm);
+        if(L.some(x=>/chave|ctrc|remet|destin|peso|volume/.test(x))&&L.filter(x=>x).length>=2){h=i;
+          const fi=re=>L.findIndex(x=>re.test(x));
+          c={ctrc:fi(/ctrc/),remetente:fi(/remet/),destinatario:fi(/destinat/),cidade:fi(/cidade|munic/),vol:fi(/^vol|volume|qtd.*vol/),peso:fi(/peso/),valor:fi(/valor|vlr/)}}
+      }
+      rows.slice(h+1).forEach(row=>{
+        const chaves=row.map(x=>String(x).replace(/\D/g,"")).filter(x=>x.length===44&&!validar(x));
+        if(!chaves.length)return;linhas++;
+        const reg={};
+        if(h>=0)Object.entries(c).forEach(([k,ix])=>{if(ix>=0&&row[ix]!=="")reg[k]=typeof row[ix]==="number"?row[ix]:String(row[ix]).trim()});
+        chaves.forEach(k=>{if(!S.base[k])novas++;S.base[k]=Object.assign(S.base[k]||{},reg)});
+      });
+    });
+    salvar();renderBaseInfo();
+    msg(`Base importada: ${linhas} linha(s) com chave, ${novas} chave(s) nova(s). Use "Reaplicar base" para completar o romaneio aberto.`);
+  }catch(err){msg("Não foi possível ler o arquivo: "+err.message,"err")}
+});
+function aplicarBase(){
+  const r=R();if(!r)return;let n=0;
+  r.linhas.forEach(l=>{
+    if(l.cte&&preencherDaBase(l,l.cte.chave,false)){l.fonte="cte";n++;return}
+    if(l.fonte!=="cte"&&l.nfes.length){let first=true;l.nfes.forEach(nf=>{if(S.base[nf.chave]){if(first){["vol","peso","valor"].forEach(k=>l[k]="");first=false}preencherDaBase(l,nf.chave,true);l.fonte="nfe";n++}})}
+  });
+  salvar();renderTabela();trocaAba("pRom");msg(`Base aplicada: ${n} documento(s) completado(s).`,n?"":"warn");
+}
+function limparBase(){S.base={};salvar();renderBaseInfo();msg("Base de apoio apagada.","warn")}
+
+/* ---------- impressao ---------- */
+function imprimir(tipo){
+  const r=R(),t=totais(r),ti=r.tipo||"Romaneio de Entrega";
+  const cab=`<div class="ph"><div><b>${tipo==="ssw"?"FOLHA PARA LANÇAMENTO NO SSW":esc(ti.toUpperCase())}</b><br>Transcherrer Transportadora · Contingência (SSW fora do ar)</div>
+    <div style="text-align:right"><b>${esc(r.id)}</b><br>Unidade ${esc(r.unidade)} · ${r.status} · Emitido ${esc(r.emitidoEm||"-")}</div></div>
+    <div class="pinfo"><div><span>Placa</span><br><b>${esc(r.placa)}</b></div><div><span>Carreta</span><br><b>${esc(r.carreta)}</b></div><div><span>Motorista</span><br><b>${esc(r.motorista)}</b></div><div><span>CPF</span><br><b>${esc(r.cpf)}</b></div><div><span>Destino / rota</span><br><b>${esc([r.destino,r.setor].filter(Boolean).join(" / "))}</b></div><div><span>Km saída</span><br><b>${esc(r.km)}</b></div>
+    <div><span>Conferente</span><br><b>${esc(r.conferente)}</b></div><div><span>Ajudantes</span><br><b>${esc([r.aj1,r.aj2,r.aj3].filter(Boolean).join(", "))}</b></div><div style="grid-column:span 4"><span>Observação</span><br><b>${esc(r.obs)}</b></div></div>
+    <div class="pk"><span>LINHAS: ${t.lin}</span><span>CT-ES: ${t.cte}</span><span>NF-ES: ${t.nfe}</span><span>VOLUMES: ${fN(t.vol,0)}</span><span>PESO: ${fN(t.peso,1)} kg</span><span>VALOR NF: R$ ${fN(t.valor,2)}</span></div>`;
+  let corpo;
+  if(tipo==="ssw"){
+    corpo=`<table><thead><tr><th>Seq</th><th>CT-e nº/série</th><th>CTRC SSW</th><th>NF-e</th><th>Vol</th><th>Peso kg</th><th>Valor NF R$</th><th>Situação</th><th>Lançado</th></tr></thead>`+
+      r.linhas.map((l,i)=>`<tbody class="lin"><tr><td><b>${i+1}</b></td><td>${l.cte?`${l.cte.num}/${l.cte.serie}`:esc(l.cteManual)}</td><td>${esc(l.ctrc)}</td><td>${l.nfes.map(n=>n.num).join(", ")}</td><td>${esc(l.vol)}</td><td>${esc(l.peso)}</td><td>${esc(l.valor)}</td><td>${esc(l.situacao)}</td><td><span class="ck"></span></td></tr>
+      <tr><td></td><td colspan="8" class="bars">${barrasHtml(l,"p"+i+"_")}</td></tr></tbody>`).join("")+`</table>
+      <div class="assin"><div>Lançado por</div><div>Data / hora lançamento</div><div>Conferido por</div></div>`;
+  }else{
+    corpo=`<table><thead><tr><th>Seq</th><th>CT-e</th><th>CTRC</th><th>NF-e</th><th>Remetente</th><th>Destinatário</th><th>Cidade</th><th>Vol</th><th>Peso kg</th><th>Valor NF R$</th><th>Recebedor / assinatura</th></tr></thead>`+
+      r.linhas.map((l,i)=>`<tbody class="lin"><tr><td><b>${i+1}</b></td><td>${l.cte?`${l.cte.num}/${l.cte.serie}`:esc(l.cteManual)}</td><td>${esc(l.ctrc)}</td><td>${l.nfes.map(n=>n.num).join(", ")}</td><td>${esc(l.remetente)}</td><td>${esc(l.destinatario)}</td><td>${esc(l.cidade)}</td><td>${esc(l.vol)}</td><td>${esc(l.peso)}</td><td>${esc(l.valor)}</td><td style="width:150px"></td></tr>`+
+      (S.barras?`<tr><td></td><td colspan="10" class="bars">${barrasHtml(l,"p"+i+"_")}</td></tr>`:"")+`</tbody>`).join("")+`</table>
+      <div class="assin"><div>Conferente</div><div>Motorista</div><div>Responsável pela unidade</div></div>`;
+  }
+  const imp=$("impressao");imp.innerHTML=cab+corpo;desenharBarras(imp);
+  setTimeout(()=>{try{window.print()}catch(e){msg("Impressão indisponível neste navegador.","err")}},150);
 }
 
+/* ---------- excel ---------- */
+function exportarExcel(){
+  const r=R();if(!r.linhas.length)return;
+  if(!window.XLSX){msg("Biblioteca de planilha não carregou (verifique a internet).","err");return}
+  const ini=12,fim=5000,t=totais(r);
+  const a=[[`${(r.tipo||"").toUpperCase()} - ${r.id}`],["Unidade",r.unidade,"Situação",r.status,"Aberto em",r.abertoEm,"Emitido em",r.emitidoEm],[],
+    ["PLACA","CARRETA","MOTORISTA","CPF","CONFERENTE","AJUDANTES","DESTINO","SETOR / ROTA","KM SAÍDA","OBSERVAÇÃO"],
+    [r.placa,r.carreta,r.motorista,r.cpf,r.conferente,[r.aj1,r.aj2,r.aj3].filter(Boolean).join(", "),r.destino,r.setor,r.km,r.obs],[],
+    ["TOTAL DOCUMENTOS LIDOS",0,"CT-ES",t.cte,"NF-ES",t.nfe],["TOTAL VOLUMES",0,"TOTAL PESO (kg)",0,"TOTAL VALOR NF (R$)",0],[],[],
+    ["SEQ","CT-E Nº","SÉRIE","CTRC SSW","NF-E Nº","REMETENTE (CNPJ)","DESTINATÁRIO","CIDADE","VOL","PESO (kg)","VALOR NF (R$)","SITUAÇÃO","OBS / OCORRÊNCIA","CHAVE CT-E","CHAVES NF-E","HORA LEITURA"]];
+  r.linhas.forEach((l,i)=>a.push([i+1,l.cte?Number(l.cte.num):l.cteManual,l.cte?Number(l.cte.serie):"",l.ctrc,l.nfes.map(n=>n.num).join(", "),l.remetente,l.destinatario,l.cidade,
+    l.vol===""?"":num(l.vol),l.peso===""?"":num(l.peso),l.valor===""?"":num(l.valor),l.situacao,l.obs,l.cte?l.cte.chave:"",l.nfes.map(n=>n.chave).join(" "),l.hora]));
+  const ws=XLSX.utils.aoa_to_sheet(a);
+  r.linhas.forEach((l,i)=>{["N","O"].forEach(L=>{const c=ws[L+(ini+i)];if(c){c.t="s";c.z="@"}});["J","K"].forEach(L=>{const c=ws[L+(ini+i)];if(c&&c.t==="n")c.z="#,##0.00"})});
+  ws.B7={t:"n",v:t.cte+t.nfe,f:`COUNTA(N${ini}:N${fim})+SUMPRODUCT((O${ini}:O${fim}<>"")*(LEN(TRIM(O${ini}:O${fim}))-LEN(SUBSTITUTE(TRIM(O${ini}:O${fim})," ",""))+1))`};
+  ws.B8={t:"n",v:t.vol,f:`SUM(I${ini}:I${fim})`};ws.D8={t:"n",v:t.peso,f:`SUM(J${ini}:J${fim})`,z:"#,##0.00"};ws.F8={t:"n",v:t.valor,f:`SUM(K${ini}:K${fim})`,z:"#,##0.00"};
+  ws["!cols"]=[6,9,6,12,16,20,24,16,7,10,13,11,24,48,48,10].map(w=>({wch:w}));
+  ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:9}}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Romaneio");
+  XLSX.writeFile(wb,`${r.id}_${(r.placa||"").replace(/\W/g,"")}.xlsx`);msg("Excel exportado.");
+}
+
+/* ---------- inicio ---------- */
 carregar();
-if(!estado.num){estado.num=gerarNumero();estado.data=agora();salvar()}
-render();
+if(!S.atual||!S.romaneios[S.atual])criarRomaneio();
+$("unidade").value=S.unidade;
+document.querySelector(`input[name="modo"][value="${S.modo}"]`).checked=true;
+$("som").checked=S.som;$("mostraBarras").checked=S.barras;
+renderTudo();
+msg(aberto()?`Romaneio ${S.atual} aberto. Preencha placa e motorista e comece a bipar.`:`Romaneio ${S.atual} ${R().status.toLowerCase()}.`);
+setInterval(()=>$("relogio").textContent=new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}),1000);
+$("relogio").textContent=agora();
 $("leitor").focus();
 </script>
 </body>
