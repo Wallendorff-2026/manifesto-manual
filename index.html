@@ -6,6 +6,7 @@
 <title>035 - Romaneio de Entregas (Contingência) - Transcherrer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{--verde:#1C9440;--verde2:#17692f;--laranja:#EB7623;--creme:#fffdf2;--creme2:#fbf6dc;--borda:#d8cfa3;--txt:#1d1d1d;--azul:#1f4e9c;--erro:#c62828}
 *{box-sizing:border-box}
@@ -80,6 +81,9 @@ td.bars svg{height:44px}
 .modal>div{background:#fff;padding:20px;max-width:420px;text-align:center;border-top:4px solid var(--laranja)}
 .modal p{margin:0 0 14px;font-size:13px}
 #impressao{display:none}
+.b-azul{background:var(--azul);border-color:#163a75;color:#fff;font-weight:bold}
+.md{border:1px solid var(--azul);background:#fff;color:var(--azul);font-size:10px;padding:2px 5px;white-space:nowrap}
+#drop{position:fixed;inset:0;background:rgba(28,148,64,.18);border:4px dashed var(--verde);display:none;align-items:center;justify-content:center;font-size:22px;font-weight:bold;color:var(--verde2);z-index:30;pointer-events:none}
 @media (max-width:1000px){.campos{grid-template-columns:repeat(4,1fr)}.bip{grid-template-columns:1fr}}
 @media print{
   @page{size:A4 landscape;margin:8mm}
@@ -169,6 +173,9 @@ td.bars svg{height:44px}
     <button class="b-laranja" id="bExp" onclick="exportarExcel()">Exportar Excel</button>
     <button id="bInv" onclick="inverter()">Inverter sequência</button>
     <button id="bManual" onclick="linhaManual()">+ Linha manual</button>
+    <button class="b-azul" onclick="$('arqXml').click()" title="Lê valor, peso, volumes, remetente, destinatário e cidade dos XMLs">Importar XML NF-e / CT-e</button>
+    <input type="file" id="arqXml" accept=".xml,.zip,.xlsx,.xls,.csv" multiple style="display:none">
+    <button onclick="consultarPendentes()" title="Copia as chaves sem valor/peso/volume e abre o Meu Danfe">Consultar pendentes no Meu Danfe</button>
     <button class="b-verm" id="bCanc" onclick="confirmar('Cancelar este romaneio? Ele ficará registrado como CANCELADO.',cancelar)">Cancelar romaneio</button>
   </div>
 
@@ -188,11 +195,13 @@ td.bars svg{height:44px}
 <!-- ================= BASE DE APOIO ================= -->
 <div class="pagina" id="pBase">
   <fieldset><legend>Base de apoio (dados que a chave não traz)</legend>
-    <p>A chave de 44 dígitos traz apenas UF, mês de emissão, CNPJ do emitente, modelo, série e número. <b>Volume, peso, valor da NF, CTRC, destinatário e cidade</b> vêm desta base: importe um relatório exportado do SSW (ou qualquer planilha/CSV) que tenha a <b>chave</b> do CT-e e/ou da NF-e em alguma coluna. Ao bipar, a linha é preenchida automaticamente.</p>
+    <p>A chave de 44 dígitos traz apenas UF, mês de emissão, CNPJ do emitente, modelo, série e número. <b>Volume, peso, valor da NF, remetente, destinatário e cidade</b> vêm desta base. Duas formas de alimentar:</p>
+    <p><b>1. XML (recomendado):</b> importe os XMLs das NF-e e/ou CT-e (arquivos soltos ou .zip; pode arrastar para a tela). Lê: volumes (qVol), peso bruto (pesoB), valor da NF (vNF), emitente, destinatário e cidade. No CT-e: valor da carga, peso e volumes (infQ).<br><b>2. Planilha / relatório SSW:</b> Excel ou CSV com a <b>chave</b> em alguma coluna (traz também o CTRC).</p>
+    <p>Ao bipar, a linha é preenchida automaticamente. Ao importar, o romaneio aberto é completado na hora.</p>
     <p class="mini">Colunas reconhecidas pelo nome do cabeçalho: chave · ctrc · remetente · destinatário · cidade · volume(s) · peso · valor. Uma linha pode ter a chave do CT-e e a da NF-e: as duas são indexadas.</p>
     <div class="botoes">
-      <label><button onclick="document.getElementById('arqBase').click()">Importar planilha / CSV</button></label>
-      <input type="file" id="arqBase" accept=".xlsx,.xls,.csv" style="display:none">
+      <label><button class="b-azul" onclick="document.getElementById('arqBase').click()">Importar XML / ZIP / planilha</button></label>
+      <input type="file" id="arqBase" accept=".xml,.zip,.xlsx,.xls,.csv" multiple style="display:none">
       <button onclick="aplicarBase()">Reaplicar base no romaneio aberto</button>
       <button class="b-verm" onclick="confirmar('Apagar toda a base de apoio deste computador?',limparBase)">Limpar base</button>
       <span id="baseInfo" class="mini"></span>
@@ -209,7 +218,8 @@ td.bars svg{height:44px}
   <b>CT-e abre a linha; NF-e vincula ao último CT-e:</b> bipe a DACTE e em seguida as DANFEs dela.<br>
   <b>Cada NF-e vira uma linha:</b> para carga sem DACTE impressa; cada DANFE é uma entrega.
   <h3>3. Volume, peso e valor</h3>
-  Vêm da <b>Base de apoio</b> (relatório SSW importado). Sem base, digite direto na linha.
+  Sem o XML em mãos, use o botão <b>Meu Danfe</b> da linha (ou <b>Consultar pendentes no Meu Danfe</b>): a chave é copiada e o site abre; cole, clique BUSCAR e <b>Baixar XML</b>. Observação: no Meu Danfe a NF-e é consultada na Receita; o CT-e só aparece se já estiver na conta de vocês, por isso a consulta usa a chave da NF-e quando houver.<br>
+  Clique em <b>Importar XML NF-e / CT-e</b> (ou arraste os XMLs / .zip para a tela) antes ou depois de bipar: valor, peso, volumes, remetente, destinatário e cidade são lidos do XML e preenchidos pela chave. Também aceita relatório SSW em Excel/CSV. Sem XML nem relatório, digite direto na linha.
   <h3>4. Emitir e imprimir</h3>
   <b>Emitir romaneio</b> confere os dados e trava a bipagem. Depois disso ficam liberados <b>Imprimir romaneio</b> (vai com o motorista) e a <b>Folha p/ lançar no SSW</b>. Para corrigir, use <b>Reabrir</b>.
   <h3>5. Retorno da rota</h3>
@@ -222,6 +232,7 @@ td.bars svg{height:44px}
 </div>
 
 <div id="impressao"></div>
+<div id="drop">Solte aqui os XMLs (NF-e / CT-e), .zip ou planilha</div>
 
 <div class="modal" id="modal"><div><p id="modalTxt"></p>
   <button class="b-laranja" id="modalOk">Confirmar</button> <button onclick="fecharModal()">Voltar</button></div></div>
@@ -284,7 +295,7 @@ function abrirRomaneio(id){S.atual=id;salvar();renderTudo();trocaAba("pRom")}
 function linhaVazia(){return{cte:null,nfes:[],cteManual:"",ctrc:"",remetente:"",destinatario:"",cidade:"",vol:"",peso:"",valor:"",situacao:"Pendente",obs:"",fonte:"",hora:new Date().toLocaleTimeString("pt-BR")}}
 function preencherDaBase(l,ch,somar){
   const b=S.base[ch];if(!b)return false;
-  ["ctrc","remetente","destinatario","cidade"].forEach(k=>{if(!l[k]&&b[k])l[k]=b[k]});
+  ["ctrc","remetente","destinatario","cidade"].forEach(k=>{if(b[k]&&(!l[k]||(k==="remetente"&&/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(l[k]))))l[k]=b[k]});
   ["vol","peso","valor"].forEach(k=>{if(b[k]!==""&&b[k]!=null){l[k]=somar&&l[k]!==""?fN(num(l[k])+num(b[k]),k==="vol"?0:2):fN(num(b[k]),k==="vol"?0:2)}});
   return true;
 }
@@ -386,7 +397,7 @@ function renderTabela(){
     tb.innerHTML=`<tr><td><b>${i+1}</b></td>${cteCel}${inp(i,"ctrc",l.ctrc,!ab)}${nfCel}${inp(i,"remetente",l.remetente,!ab)}${inp(i,"destinatario",l.destinatario,!ab)}${inp(i,"cidade",l.cidade,!ab)}
       ${inp(i,"vol",l.vol,!ab,"n")}${inp(i,"peso",l.peso,!ab,"n")}${inp(i,"valor",l.valor,!ab,"n")}
       <td><select data-i="${i}" data-f="situacao" ${ed?"":"disabled"}>${SITS.map(s=>`<option ${s===l.situacao?"selected":""}>${s}</option>`).join("")}</select></td>
-      ${inp(i,"obs",l.obs,!ed)}<td>${ab?`<button class="x" title="Remover linha" onclick="removerLinha(${i})">✕</button>`:""}</td></tr>`
+      ${inp(i,"obs",l.obs,!ed)}<td style="white-space:nowrap">${chaveConsulta(l)?`<button class="md" title="Copia a chave e abre o Meu Danfe para baixar o XML" onclick="consultarMD(${i})">Meu Danfe</button>`:""}${ab?`<button class="x" title="Remover linha" onclick="removerLinha(${i})">✕</button>`:""}</td></tr>`
       +(S.barras&&(l.cte||l.nfes.length)?`<tr><td></td><td colspan="12" class="bars">${barrasHtml(l,"b"+i+"_")}</td></tr>`:"");
     tab.appendChild(tb);
   });
@@ -425,8 +436,89 @@ function confirmar(t,fn){$("modalTxt").textContent=t;$("modal").style.display="f
 function fecharModal(){$("modal").style.display="none"}
 
 /* ---------- base de apoio ---------- */
-$("arqBase").addEventListener("change",async e=>{
-  const f=e.target.files[0];e.target.value="";if(!f)return;
+/* ---------- Meu Danfe ---------- */
+const MD_URL="https://meudanfe.com.br/";
+const chaveConsulta=l=>l.nfes.length?l.nfes[0].chave:(l.cte?l.cte.chave:"");
+const semDados=l=>l.vol===""||l.peso===""||l.valor==="";
+async function copiar(t){try{await navigator.clipboard.writeText(t);return true}catch(e){return false}}
+async function consultarMD(i){
+  const l=R().linhas[i],ks=[...l.nfes.map(n=>n.chave),...(l.cte?[l.cte.chave]:[])];
+  const ok=await copiar(ks[0]);window.open(MD_URL,"_blank");
+  msg(ok?`Chave ${ks[0]} copiada. No Meu Danfe: cole (Ctrl+V), clique BUSCAR e em "Baixar XML". Depois arraste o XML para esta tela.`:`Copie a chave ${ks[0]} e consulte no Meu Danfe; depois arraste o XML baixado para esta tela.`,"warn");
+}
+async function consultarPendentes(){
+  const ks=[];R().linhas.forEach(l=>{if(semDados(l)){l.nfes.forEach(n=>ks.push(n.chave));if(!l.nfes.length&&l.cte)ks.push(l.cte.chave)}});
+  if(!ks.length){msg("Todas as linhas já têm valor, peso e volumes.");return}
+  const ok=await copiar(ks.join("\n"));window.open(MD_URL,"_blank");
+  msg(`${ks.length} chave(s) sem dados ${ok?"copiadas (uma por linha)":"encontradas"}. Consulte cada uma no Meu Danfe, baixe os XMLs e arraste todos de uma vez para esta tela.`,"warn");
+}
+
+/* ---------- XML NF-e / CT-e ---------- */
+const xAll=(el,t)=>el?[...el.getElementsByTagNameNS("*",t)]:[];
+const xTx=(el,t)=>{const n=xAll(el,t)[0];return n?n.textContent.trim():""};
+const xNum=v=>{const n=parseFloat(v);return isNaN(n)?0:n};
+const pessoa=el=>el?`${xTx(el,"xNome")} (${xTx(el,"CNPJ")?fCnpj(xTx(el,"CNPJ")):xTx(el,"CPF")})`:"";
+function lerXml(txt){
+  const d=new DOMParser().parseFromString(txt,"application/xml");
+  if(d.getElementsByTagName("parsererror").length)return null;
+  const nfe=xAll(d,"infNFe").find(x=>x.getAttribute("Id")),cte=xAll(d,"infCte")[0];
+  if(nfe&&!cte){
+    const ch=(nfe.getAttribute("Id")||"").replace(/\D/g,"")||xTx(d,"chNFe");
+    let vol=0,pb=0,pl=0;xAll(xAll(nfe,"transp")[0],"vol").forEach(v=>{vol+=xNum(xTx(v,"qVol"));pb+=xNum(xTx(v,"pesoB"));pl+=xNum(xTx(v,"pesoL"))});
+    const dest=xAll(nfe,"dest")[0],end=xAll(dest,"enderDest")[0];
+    return[{chave:ch,reg:{vol:vol||"",peso:pb||pl||"",valor:xNum(xTx(xAll(nfe,"ICMSTot")[0],"vNF"))||"",remetente:pessoa(xAll(nfe,"emit")[0]),destinatario:dest?xTx(dest,"xNome"):"",cidade:end?`${xTx(end,"xMun")}/${xTx(end,"UF")}`:""}}];
+  }
+  if(cte){
+    const ch=(cte.getAttribute("Id")||"").replace(/\D/g,"")||xTx(d,"chCTe");
+    const carga=xAll(cte,"infCarga")[0],qs=xAll(carga,"infQ").map(q=>({u:xTx(q,"cUnid"),m:xTx(q,"tpMed").toUpperCase(),v:xNum(xTx(q,"qCarga"))}));
+    const kg=q=>q.u==="02"?q.v*1000:q.v;
+    const pBr=qs.find(q=>(q.u==="01"||q.u==="02")&&/BRUT|REAL/.test(q.m))||qs.find(q=>q.u==="01"||q.u==="02");
+    const vQ=qs.find(q=>q.u==="03"&&/VOL/.test(q.m))||qs.find(q=>q.u==="03");
+    const dest=xAll(cte,"dest")[0],end=xAll(dest,"enderDest")[0],ide=xAll(cte,"ide")[0];
+    const reg={vol:vQ?vQ.v:"",peso:pBr?kg(pBr):"",valor:xNum(xTx(carga,"vCarga"))||"",remetente:pessoa(xAll(cte,"rem")[0]),destinatario:dest?xTx(dest,"xNome"):"",
+      cidade:end?`${xTx(end,"xMun")}/${xTx(end,"UF")}`:(ide?`${xTx(ide,"xMunFim")}/${xTx(ide,"UFFim")}`:"")};
+    const out=[{chave:ch,reg}];
+    const nfs=xAll(xAll(cte,"infDoc")[0],"chave").map(n=>n.textContent.trim());
+    if(nfs.length===1)out.push({chave:nfs[0],reg,fraco:true});
+    return out;
+  }
+  return null;
+}
+async function importarArquivos(lista){
+  const fs=[...lista];if(!fs.length)return;
+  let xmls=0,regs=0,ign=0;const planilhas=[];
+  const tratarXml=txt=>{const r=lerXml(txt);if(!r){ign++;return}xmls++;
+    r.forEach(x=>{if(x.chave.length!==44||validar(x.chave))return;if(x.fraco&&S.base[x.chave])return;
+      const limpo={};Object.entries(x.reg).forEach(([k,v])=>{if(v!==""&&v!=null)limpo[k]=v});S.base[x.chave]=Object.assign(S.base[x.chave]||{},limpo);regs++})};
+  msg("Lendo arquivos...","warn");
+  for(const f of fs){
+    const n=f.name.toLowerCase();
+    try{
+      if(n.endsWith(".xml"))tratarXml(await f.text());
+      else if(n.endsWith(".zip")){
+        if(!window.JSZip){msg("Biblioteca de ZIP não carregou (verifique a internet). Extraia os XMLs e importe soltos.","err");return}
+        const z=await JSZip.loadAsync(f);
+        for(const e of Object.values(z.files)){if(!e.dir&&e.name.toLowerCase().endsWith(".xml"))tratarXml(await e.async("string"))}
+      }else if(/\.(xlsx|xls|csv)$/.test(n))planilhas.push(f);
+      else ign++;
+    }catch(err){ign++}
+  }
+  salvar();
+  for(const p of planilhas)await importarPlanilha(p);
+  const n=aplicarBase(false);
+  renderBaseInfo();
+  if(xmls||planilhas.length)msg(`Importado: ${xmls} XML(s)${planilhas.length?` e ${planilhas.length} planilha(s)`:""}, ${regs} chave(s) na base. ${n} linha(s) do romaneio completada(s).${ign?` ${ign} arquivo(s) ignorado(s).`:""}`,n?"":"warn");
+  else msg("Nenhum XML de NF-e/CT-e válido encontrado nos arquivos.","err");
+}
+$("arqXml").addEventListener("change",e=>{const f=e.target.files;importarArquivos(f).then(()=>{e.target.value=""})});
+$("arqBase").addEventListener("change",e=>{const f=e.target.files;importarArquivos(f).then(()=>{e.target.value=""})});
+let dragN=0;
+document.addEventListener("dragenter",e=>{if([...e.dataTransfer.types].includes("Files")){dragN++;$("drop").style.display="flex"}});
+document.addEventListener("dragleave",()=>{if(--dragN<=0){dragN=0;$("drop").style.display="none"}});
+document.addEventListener("dragover",e=>e.preventDefault());
+document.addEventListener("drop",e=>{e.preventDefault();dragN=0;$("drop").style.display="none";if(e.dataTransfer.files.length)importarArquivos(e.dataTransfer.files)});
+
+async function importarPlanilha(f){
   if(!window.XLSX){msg("Biblioteca de planilha não carregou (verifique a internet).","err");return}
   try{
     const wb=XLSX.read(await f.arrayBuffer(),{type:"array"});let novas=0,linhas=0;
@@ -449,16 +541,16 @@ $("arqBase").addEventListener("change",async e=>{
       });
     });
     salvar();renderBaseInfo();
-    msg(`Base importada: ${linhas} linha(s) com chave, ${novas} chave(s) nova(s). Use "Reaplicar base" para completar o romaneio aberto.`);
   }catch(err){msg("Não foi possível ler o arquivo: "+err.message,"err")}
-});
-function aplicarBase(){
+}
+function aplicarBase(trocar=true){
   const r=R();if(!r)return;let n=0;
   r.linhas.forEach(l=>{
     if(l.cte&&preencherDaBase(l,l.cte.chave,false)){l.fonte="cte";n++;return}
     if(l.fonte!=="cte"&&l.nfes.length){let first=true;l.nfes.forEach(nf=>{if(S.base[nf.chave]){if(first){["vol","peso","valor"].forEach(k=>l[k]="");first=false}preencherDaBase(l,nf.chave,true);l.fonte="nfe";n++}})}
   });
-  salvar();renderTabela();trocaAba("pRom");msg(`Base aplicada: ${n} documento(s) completado(s).`,n?"":"warn");
+  salvar();renderTabela();if(trocar){trocaAba("pRom");msg(`Base aplicada: ${n} documento(s) completado(s).`,n?"":"warn")}
+  return n;
 }
 function limparBase(){S.base={};salvar();renderBaseInfo();msg("Base de apoio apagada.","warn")}
 
