@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manifesto Manual - Transcherrer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--verde:#1C9440;--verde2:#008a00;--laranja:#EB7623;--cinza:#f3f5f4;--borda:#d6dcd8;--texto:#1f2a24;--erro:#c62828}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--cinza);color:var(--texto)}
+  header{background:var(--verde);color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:5px solid var(--laranja)}
+  header h1{margin:0;font-size:22px;letter-spacing:.5px}
+  header .sub{font-size:13px;opacity:.9}
+  header .num{text-align:right;font-size:13px}
+  header .num b{font-size:18px;display:block}
+  main{max-width:1200px;margin:18px auto;padding:0 16px}
+  .card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:16px;margin-bottom:14px}
+  .card h2{margin:0 0 12px;font-size:14px;text-transform:uppercase;color:var(--verde);letter-spacing:.5px}
+  .grid{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:12px}
+  label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;margin-bottom:4px;color:#4a5750}
+  select{width:100%;padding:10px;border:1px solid var(--borda);border-radius:6px;font-size:15px;background:#fff;font-weight:600}
+  input{width:100%;padding:10px;border:1px solid var(--borda);border-radius:6px;font-size:15px}
+  input:focus{outline:2px solid var(--laranja);border-color:var(--laranja)}
+  input.invalido{border-color:var(--erro);background:#fff3f3}
+  .placa{text-transform:uppercase;font-family:Consolas,monospace;letter-spacing:1px}
+  .scanrow{display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:stretch}
+  #leitor{font-size:20px;font-family:Consolas,monospace;padding:16px;border:2px solid var(--verde)}
+  .total{background:var(--laranja);color:#fff;border-radius:8px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  .total span{font-size:12px;font-weight:700;text-transform:uppercase}
+  .total b{font-size:44px;line-height:1}
+  #msg{margin-top:10px;padding:10px 12px;border-radius:6px;font-weight:600;font-size:14px;display:none}
+  #msg.ok{display:block;background:#e7f5ea;color:var(--verde2);border:1px solid #b9e0c3}
+  #msg.err{display:block;background:#fdecec;color:var(--erro);border:1px solid #f3c1c1}
+  .acoes{display:flex;flex-wrap:wrap;gap:8px}
+  button{border:0;border-radius:6px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .b-verde{background:var(--verde);color:#fff}.b-verde:hover{background:var(--verde2)}
+  .b-laranja{background:var(--laranja);color:#fff}
+  .b-cinza{background:#e3e7e5;color:var(--texto)}
+  .b-rem{background:transparent;color:var(--erro);padding:4px 8px;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--verde);color:#fff;text-align:left;padding:8px;font-size:12px;text-transform:uppercase}
+  td{padding:7px 8px;border-bottom:1px solid #e6eae8}
+  tr:nth-child(even) td{background:#f8faf9}
+  td.chave{font-family:Consolas,monospace;font-size:13px;letter-spacing:.3px}
+  .vazio{text-align:center;color:#8a958f;padding:24px}
+  .rej{font-size:12px;color:#6b7670;margin-top:8px}
+  .rej li{margin:2px 0}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:10}
+  .modal div{background:#fff;padding:22px;border-radius:8px;max-width:380px;text-align:center}
+  .modal p{margin:0 0 16px}
+  .print-only{display:none}
+  @media (max-width:800px){.grid{grid-template-columns:1fr 1fr}.scanrow{grid-template-columns:1fr}}
+  @media print{
+    @page{size:A4;margin:12mm}
+    body{background:#fff;font-size:11px}
+    header{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:8px 12px}
+    .no-print{display:none!important}
+    .print-only{display:block}
+    main{margin:0;max-width:none;padding:0}
+    .card{border:1px solid #999;border-radius:0;padding:10px;margin-bottom:8px}
+    input{border:0;padding:2px 0;font-size:13px;font-weight:700}
+    th{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:5px}
+    td{padding:4px 5px}
+    td.chave{font-size:11px}
+    .col-rem{display:none}
+    .total{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .assin{display:grid!important;grid-template-columns:1fr 1fr 1fr;gap:30px;margin-top:40px}
+    .assin div{border-top:1px solid #000;text-align:center;padding-top:4px;font-size:11px}
+  }
+  .assin{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="titulo">MANIFESTO MANUAL - MANIFESTO DE VIAGEM</h1>
+    <div class="sub">Transcherrer Transportadora - Conferência de carregamento por chave CT-e</div>
+  </div>
+  <div class="num">Manifesto nº<b id="numMan">-</b><span id="dataMan"></span></div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Dados do carregamento</h2>
+    <div class="grid">
+      <div><label for="destino">Destino</label><input id="destino" placeholder="Cidade / Unidade de destino">
+        <label for="tipo" style="margin-top:10px">Tipo de documento</label>
+        <select id="tipo"><option>Manifesto de Viagem</option><option>Romaneio de Entrega</option></select></div>
+      <div><label for="motorista">Motorista</label><input id="motorista" placeholder="Nome completo"></div>
+      <div><label for="cavalo">Placa cavalo</label><input id="cavalo" class="placa" maxlength="8" placeholder="ABC1D23"></div>
+      <div><label for="carreta">Placa carreta</label><input id="carreta" class="placa" maxlength="8" placeholder="ABC1D23"></div>
+    </div>
+  </section>
+
+  <section class="card no-print">
+    <h2>Leitura das chaves CT-e</h2>
+    <div class="scanrow">
+      <div>
+        <input id="leitor" autocomplete="off" inputmode="numeric" placeholder="Bipe ou digite a chave de 44 dígitos e tecle Enter">
+        <div id="msg"></div>
+        <ul class="rej" id="rejeitados"></ul>
+      </div>
+      <div class="total"><span>Total documentos lidos</span><b id="total">0</b></div>
+    </div>
+  </section>
+
+  <section class="card no-print">
+    <div class="acoes">
+      <button class="b-verde" onclick="imprimir()">Imprimir manifesto</button>
+      <button class="b-laranja" onclick="exportarExcel()">Exportar Excel</button>
+      <button class="b-cinza" onclick="copiarChaves()">Copiar chaves</button>
+      <button class="b-cinza" onclick="abrirModal()">Novo manifesto</button>
+    </div>
+  </section>
+
+  <section class="card print-only">
+    <b>TOTAL DOCUMENTOS LIDOS: <span id="totalPrint">0</span></b>
+  </section>
+
+  <section class="card">
+    <h2>Número chave CT-e</h2>
+    <table>
+      <thead><tr><th>#</th><th>Chave CT-e</th><th>Série</th><th>Nº CT-e</th><th>Emissão</th><th>CNPJ emitente</th><th>Leitura</th><th class="col-rem no-print"></th></tr></thead>
+      <tbody id="lista"><tr><td colspan="8" class="vazio">Nenhuma chave lida.</td></tr></tbody>
+    </table>
+    <div class="assin">
+      <div>Conferente</div><div>Motorista</div><div>Data / Hora saída</div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal"><div>
+  <p>Iniciar novo manifesto? Os dados e chaves atuais serão apagados.</p>
+  <button class="b-laranja" onclick="novoManifesto()">Confirmar</button>
+  <button class="b-cinza" onclick="fecharModal()">Cancelar</button>
+</div></div>
+
+<script>
+const UF={"11":"RO","12":"AC","13":"AM","14":"RR","15":"PA","16":"AP","17":"TO","21":"MA","22":"PI","23":"CE","24":"RN","25":"PB","26":"PE","27":"AL","28":"SE","29":"BA","31":"MG","32":"ES","33":"RJ","35":"SP","41":"PR","42":"SC","43":"RS","50":"MS","51":"MT","52":"GO","53":"DF"};
+let estado={num:"",data:"",tipo:"Manifesto de Viagem",destino:"",motorista:"",cavalo:"",carreta:"",chaves:[]};
+let rejeitados=[];
+const $=id=>document.getElementById(id);
+
+function salvar(){try{localStorage.setItem("manifestoManualTC",JSON.stringify(estado))}catch(e){}}
+function carregar(){try{const s=localStorage.getItem("manifestoManualTC");if(s)estado=JSON.parse(s)}catch(e){}}
+function gerarNumero(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `MM${String(d.getFullYear()).slice(2)}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`}
+function agora(){return new Date().toLocaleString("pt-BR")}
+
+function dvValido(ch){
+  let soma=0,peso=2;
+  for(let i=42;i>=0;i--){soma+=Number(ch[i])*peso;peso=peso===9?2:peso+1}
+  const r=soma%11,dv=r<2?0:11-r;
+  return dv===Number(ch[43]);
+}
+function validarChave(ch){
+  if(ch.length!==44)return `Chave com ${ch.length} dígitos (esperado 44)`;
+  if(!UF[ch.slice(0,2)])return "Código de UF inválido";
+  if(ch.slice(20,22)!=="57")return `Modelo ${ch.slice(20,22)} não é CT-e (57)`;
+  if(!dvValido(ch))return "Dígito verificador inválido";
+  if(estado.chaves.some(c=>c.chave===ch))return "Chave já lida neste manifesto (duplicada)";
+  return null;
+}
+function fmtChave(c){return c.replace(/(\d{4})(?=\d)/g,"$1 ")}
+function fmtCnpj(c){return c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5")}
+function decompor(ch){
+  return{chave:ch,uf:UF[ch.slice(0,2)],emissao:ch.slice(4,6)+"/20"+ch.slice(2,4),cnpj:fmtCnpj(ch.slice(6,20)),
+    serie:String(Number(ch.slice(22,25))),numero:String(Number(ch.slice(25,34))),hora:new Date().toLocaleTimeString("pt-BR")};
+}
+
+let audio;
+function beep(ok){
+  try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);
+    o.frequency.value=ok?1200:300;g.gain.value=.15;o.start();o.stop(audio.currentTime+(ok?.08:.35));}catch(e){}
+}
+function mensagem(txt,ok){const m=$("msg");m.textContent=txt;m.className=ok?"ok":"err"}
+
+function processar(){
+  const bruto=$("leitor").value,ch=bruto.replace(/\D/g,"");
+  $("leitor").value="";
+  if(!ch)return;
+  const erro=validarChave(ch);
+  if(erro){
+    beep(false);mensagem("REJEITADA: "+erro,false);
+    rejeitados.unshift(`${new Date().toLocaleTimeString("pt-BR")} - ${ch||bruto} - ${erro}`);
+    rejeitados=rejeitados.slice(0,5);renderRej();return;
+  }
+  const d=decompor(ch);estado.chaves.push(d);salvar();render();
+  beep(true);mensagem(`OK: CT-e ${d.numero} série ${d.serie} adicionado (${estado.chaves.length})`,true);
+}
+function remover(i){estado.chaves.splice(i,1);salvar();render();$("leitor").focus()}
+
+function renderRej(){$("rejeitados").innerHTML=rejeitados.map(r=>`<li>${r}</li>`).join("")}
+function render(){
+  $("numMan").textContent=estado.num;$("dataMan").textContent=estado.data;
+  ["destino","motorista","cavalo","carreta"].forEach(k=>$(k).value=estado[k]||"");
+  $("tipo").value=estado.tipo||"Manifesto de Viagem";$("titulo").textContent="MANIFESTO MANUAL - "+$("tipo").value.toUpperCase();
+  $("total").textContent=estado.chaves.length;$("totalPrint").textContent=estado.chaves.length;
+  const tb=$("lista");
+  if(!estado.chaves.length){tb.innerHTML='<tr><td colspan="8" class="vazio">Nenhuma chave lida.</td></tr>';return}
+  tb.innerHTML=estado.chaves.map((c,i)=>`<tr><td>${i+1}</td><td class="chave">${fmtChave(c.chave)}</td><td>${c.serie}</td><td>${c.numero}</td><td>${c.emissao}</td><td>${c.cnpj}</td><td>${c.hora}</td><td class="col-rem no-print"><button class="b-rem" onclick="remover(${i})">Remover</button></td></tr>`).join("");
+  validarPlacas();
+}
+function placaOk(p){return !p||/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(p.replace("-",""))}
+function validarPlacas(){["cavalo","carreta"].forEach(k=>$(k).classList.toggle("invalido",!placaOk($(k).value)))}
+
+["destino","motorista","cavalo","carreta"].forEach(k=>{
+  $(k).addEventListener("input",e=>{
+    if(k==="cavalo"||k==="carreta")e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");
+    estado[k]=e.target.value;salvar();validarPlacas();
+  });
+});
+$("tipo").addEventListener("change",e=>{estado.tipo=e.target.value;salvar();render()});
+$("leitor").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key==="Tab"){e.preventDefault();processar()}});
+
+function checarCabecalho(){
+  const falta=[];if(!estado.destino)falta.push("Destino");if(!estado.motorista)falta.push("Motorista");
+  if(!estado.cavalo)falta.push("Placa cavalo");
+  if(!placaOk(estado.cavalo)||!placaOk(estado.carreta))falta.push("Placa em formato inválido");
+  if(!estado.chaves.length)falta.push("Nenhuma chave lida");
+  if(falta.length){mensagem("Pendências: "+falta.join(", "),false);return false}
+  return true;
+}
+let DL=null;
+try{if(window.claude&&window.claude.use)window.claude.use("downloads").then(d=>{DL=d}).catch(()=>{})}catch(e){}
+async function salvarArquivo(nome,data){
+  if(DL){
+    try{await DL.save({filename:nome,data});mensagem("Arquivo salvo: "+nome,true);return true}
+    catch(e){if(e&&e.code==="declined"){mensagem("Download cancelado.",false);return false}}
+  }
+  try{baixar(data instanceof Blob?data:new Blob([data]),nome);mensagem("Arquivo gerado: "+nome,true);return true}
+  catch(e){mensagem("Download indisponível neste ambiente.",false);return false}
+}
+function htmlImpressao(){
+  const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const linhas=estado.chaves.map((c,i)=>`<tr><td>${i+1}</td><td class="k">${fmtChave(c.chave)}</td><td>${c.serie}</td><td>${c.numero}</td><td>${c.emissao}</td><td>${c.cnpj}</td><td>${c.hora}</td></tr>`).join("");
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Manifesto ${esc(estado.num)}</title><style>
+@page{size:A4;margin:12mm}body{font-family:Arial,sans-serif;font-size:11px;color:#111}
+.h{background:#1C9440;color:#fff;padding:8px 12px;border-bottom:4px solid #EB7623;display:flex;justify-content:space-between;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.h b{font-size:18px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #999;padding:4px 5px;text-align:left}
+th{background:#1C9440;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.k{font-family:Consolas,monospace}
+.cab td{font-size:13px}.cab th{font-size:10px}.tot{margin-top:8px;font-size:14px;font-weight:bold}
+.as{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;margin-top:50px}.as div{border-top:1px solid #000;text-align:center;padding-top:4px}
+</style></head><body onload="window.print()">
+<div class="h"><div><b>MANIFESTO MANUAL</b><br>${esc((estado.tipo||"Manifesto de Viagem").toUpperCase())} - Transcherrer Transportadora</div><div style="text-align:right">Manifesto nº <b>${esc(estado.num)}</b><br>${esc(estado.data)}</div></div>
+<table class="cab"><tr><th>DESTINO</th><th>MOTORISTA</th><th>PLACA CAVALO</th><th>PLACA CARRETA</th></tr>
+<tr><td>${esc(estado.destino)}</td><td>${esc(estado.motorista)}</td><td>${esc(estado.cavalo)}</td><td>${esc(estado.carreta)}</td></tr></table>
+<div class="tot">TOTAL DOCUMENTOS LIDOS: ${estado.chaves.length}</div>
+<table><tr><th>#</th><th>NUMERO CHAVE CT-E</th><th>SÉRIE</th><th>Nº CT-E</th><th>EMISSÃO</th><th>CNPJ EMITENTE</th><th>LEITURA</th></tr>${linhas}</table>
+<div class="as"><div>Conferente</div><div>Motorista</div><div>Data / Hora saída</div></div></body></html>`;
+}
+async function imprimir(){
+  if(!checarCabecalho())return;
+  if(DL){if(await salvarArquivo(nomeArquivo("html"),htmlImpressao()))mensagem("Abra o arquivo baixado: ele abre já pronto para imprimir.",true);return}
+  try{window.print()}catch(e){salvarArquivo(nomeArquivo("html"),htmlImpressao())}
+}
+
+function linhasPlanilha(){
+  const a=[["Manifesto manual","","","","","",""],["Nº manifesto",estado.num,"Data",estado.data,"Tipo",estado.tipo||"Manifesto de Viagem",""],[],
+    ["DESTINO","MOTORISTA","PLACA CAVALO","PLACA CARRETA"],[estado.destino,estado.motorista,estado.cavalo,estado.carreta],[],
+    ["TOTAL DOCUMENTOS LIDOS",estado.chaves.length],[],
+    ["#","NUMERO CHAVE CT-E","SÉRIE","Nº CT-E","EMISSÃO","CNPJ EMITENTE","HORA LEITURA"]];
+  estado.chaves.forEach((c,i)=>a.push([i+1,c.chave,c.serie,c.numero,c.emissao,c.cnpj,c.hora]));
+  return a;
+}
+function nomeArquivo(ext){return `${(estado.tipo||"Manifesto").startsWith("Romaneio")?"Romaneio":"ManifestoViagem"}_${estado.num}_${(estado.destino||"destino").replace(/[^\w]+/g,"_")}.${ext}`}
+function baixar(blob,nome){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();a.remove()}
+function exportarExcel(){
+  if(!estado.chaves.length){mensagem("Nenhuma chave para exportar.",false);return}
+  const linhas=linhasPlanilha();
+  if(window.XLSX){
+    const ws=XLSX.utils.aoa_to_sheet(linhas);
+    for(let r=9;r<linhas.length;r++){const ref=XLSX.utils.encode_cell({r,c:1});if(ws[ref]){ws[ref].t="s";ws[ref].z="@"}}
+    ws["B7"]={t:"n",v:estado.chaves.length,f:"COUNTA(B10:B5000)"};
+    ws["!cols"]=[{wch:24},{wch:48},{wch:16},{wch:16},{wch:10},{wch:20},{wch:12}];
+    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}}];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Manifesto");
+    const buf=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+    salvarArquivo(nomeArquivo("xlsx"),new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+  }else{
+    const csv=linhas.map(l=>l.map((v,i)=>i===1&&/^\d{44}$/.test(v)?`="${v}"`:`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\r\n");
+    salvarArquivo(nomeArquivo("csv"),new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"}));
+  }
+}
+function copiarChaves(){
+  const txt=estado.chaves.map(c=>c.chave).join("\n");
+  if(!txt){mensagem("Nenhuma chave para copiar.",false);return}
+  navigator.clipboard.writeText(txt).then(()=>mensagem(`${estado.chaves.length} chaves copiadas.`,true)).catch(()=>mensagem("Não foi possível copiar.",false));
+}
+function abrirModal(){$("modal").style.display="flex"}
+function fecharModal(){$("modal").style.display="none";$("leitor").focus()}
+function novoManifesto(){
+  estado={num:gerarNumero(),data:agora(),tipo:estado.tipo||"Manifesto de Viagem",destino:"",motorista:"",cavalo:"",carreta:"",chaves:[]};
+  rejeitados=[];renderRej();$("msg").className="";salvar();render();fecharModal();$("destino").focus();
+}
+
+carregar();
+if(!estado.num){estado.num=gerarNumero();estado.data=agora();salvar()}
+render();
+$("leitor").focus();
+</script>
+</body>
+</html>
