@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance de Entrega · Transcherrer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  --brand-green-700:#045c2e;--brand-green-500:#1c9440;--brand-green-100:#e6f2ea;
+  --brand-orange-500:#f47c26;--brand-orange-700:#b5520e;
+  --surface-0:#ffffff;--surface-50:#f4f6f5;--border:#dce3df;--ink:#15211b;--ink-muted:#55655d;--on-brand:#ffffff;
+  --status-ok:#1c7a3a;--status-ok-bg:#e3f1e7;--status-warn:#9a5b00;--status-warn-bg:#fdf0dc;--status-crit:#b42318;--status-crit-bg:#fce7e5;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;
+  --radius-sm:2px;--radius-md:4px;--radius-lg:8px;
+  --font-display:"Barlow Condensed","Bahnschrift SemiCondensed","Arial Narrow",sans-serif;
+  --font-sans:Barlow,"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-50);color:var(--ink);font-family:var(--font-sans);font-variant-numeric:tabular-nums}
+.header{display:flex;align-items:center;gap:var(--space-4);min-height:64px;padding:var(--space-2) var(--space-6);background:var(--brand-green-700);color:var(--on-brand)}
+.logo{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1;padding-right:var(--space-4);border-right:1px solid rgba(255,255,255,.35)}
+.logo small{display:block;font-family:var(--font-sans);font-size:9px;font-weight:600;letter-spacing:.12em;margin-top:2px}
+h1{font-family:var(--font-display);font-size:28px;line-height:32px;font-weight:700;margin:0}
+.meta{margin-left:auto;display:flex;align-items:center;gap:var(--space-3);font-size:12px;line-height:16px;text-align:right}
+.meta b{display:block;font-weight:600}
+.btn{font:600 13px/20px var(--font-sans);background:var(--surface-0);color:var(--brand-green-700);border:0;border-radius:var(--radius-md);padding:6px 14px;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn:focus-visible,select:focus-visible{outline:3px solid var(--brand-orange-500);outline-offset:2px}
+.filters{display:flex;flex-wrap:wrap;gap:var(--space-3);padding:var(--space-3) var(--space-6)}
+.filter{display:flex;flex-direction:column;gap:2px;min-width:160px}
+.filter label{font:600 11px/14px var(--font-sans);color:var(--ink-muted);text-transform:uppercase;letter-spacing:.04em}
+select{font:13px/20px var(--font-sans);color:var(--ink);background:var(--surface-0);border:1px solid var(--border);border-radius:var(--radius-md);padding:6px var(--space-2)}
+.status{padding:0 var(--space-6);font-size:12px;color:var(--ink-muted);min-height:16px}
+.status.err{color:var(--status-crit);font-weight:600}
+main{padding:var(--space-2) var(--space-6) var(--space-6);display:flex;flex-direction:column;gap:var(--space-3)}
+.grid{display:grid;gap:var(--space-3)}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.two{grid-template-columns:1.6fr 1fr}
+@media (max-width:900px){.two{grid-template-columns:1fr}.meta{flex-direction:column;align-items:flex-end}}
+.card{background:var(--surface-0);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 1px 2px rgba(21,33,27,.06);padding:var(--space-4);min-width:0}
+.card h2{font-family:var(--font-display);font-size:18px;line-height:24px;font-weight:600;margin:0 0 var(--space-3)}
+.kpi{display:flex;flex-direction:column;gap:var(--space-1)}
+.kpi .l{font:600 12px/16px var(--font-sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-muted)}
+.kpi .v{font-family:var(--font-display);font-size:36px;line-height:40px;font-weight:600}
+.kpi .s{font-size:12px;line-height:16px;color:var(--ink-muted)}
+.kpi.meta-ok{border-top:4px solid var(--status-ok)} .kpi.meta-warn{border-top:4px solid var(--status-warn)} .kpi.meta-crit{border-top:4px solid var(--status-crit)}
+.up{color:var(--status-ok);font-weight:600}.down{color:var(--status-crit);font-weight:600}
+svg text{font-family:var(--font-sans)}
+.rank{display:grid;grid-template-columns:minmax(100px,150px) 1fr 60px;gap:6px var(--space-2);align-items:center;font-size:12px;line-height:16px}
+.rank .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .bar{height:14px;background:var(--surface-50);border-radius:var(--radius-sm);overflow:hidden}
+.rank .bar i{display:block;height:100%;background:var(--brand-orange-500);border-radius:var(--radius-sm)}
+.rank .bar i.g{background:var(--brand-green-500)}
+.rank .val{text-align:right;font-weight:600}
+.rank .val small{display:block;color:var(--ink-muted);font-weight:400;font-size:11px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;line-height:16px}
+th{background:var(--brand-green-700);color:var(--on-brand);font-weight:600;padding:6px var(--space-2);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:5px var(--space-2);text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+tr.total td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+.ok{background:var(--status-ok-bg);color:var(--status-ok)}.warn{background:var(--status-warn-bg);color:var(--status-warn)}.crit{background:var(--status-crit-bg);color:var(--status-crit);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-3);font-size:11px;line-height:14px;color:var(--ink-muted);margin-top:var(--space-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:var(--radius-sm);margin-right:4px;vertical-align:-1px}
+footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);padding:0 var(--space-6) var(--space-4);font-size:11px;line-height:14px;color:var(--ink-muted)}
+.empty{color:var(--ink-muted);font-size:12px}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="logo">Transcherrer<small>CARGAS E ENCOMENDAS</small></div>
+  <h1>Performance de Entrega</h1>
+  <div class="meta">
+    <div>Dados do Power BI<b id="refresh">carregando…</b></div>
+    <button class="btn" id="btnAtualizar" type="button">Atualizar</button>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="filter"><label for="fAno">Ano</label><select id="fAno"></select></div>
+  <div class="filter"><label for="fMes">Mês</label><select id="fMes"><option value="">Todos</option></select></div>
+  <div class="filter"><label for="fFilial">Filial</label><select id="fFilial"><option value="">Todas</option></select></div>
+</div>
+<div class="status" id="status" role="status"></div>
+
+<main>
+  <section class="grid kpis" id="kpis"></section>
+  <section class="grid kpis" id="kpis2"></section>
+  <section class="grid two">
+    <div class="card"><h2>Índice de entrega por mês</h2><div id="trend"></div><div class="legend" id="trendNote"></div></div>
+    <div class="card"><h2>Clientes com mais atrasos do transportador</h2><div class="rank" id="rank"></div><div class="legend">Barra: entregas com atraso do transportador · abaixo: % no prazo</div></div>
+  </section>
+  <section class="grid two">
+    <div class="card"><h2>Desempenho por filial</h2><div class="tablewrap" id="matrix"></div>
+      <div class="legend"><span><i style="background:var(--status-ok-bg);outline:1px solid var(--status-ok)"></i>&ge; meta</span><span><i style="background:var(--status-warn-bg);outline:1px solid var(--status-warn)"></i>até 3 p.p. abaixo</span><span><i style="background:var(--status-crit-bg);outline:1px solid var(--status-crit)"></i>mais de 3 p.p. abaixo</span><span>Ordenado do pior para o melhor</span></div></div>
+    <div class="card"><h2>Coletas em aberto por unidade</h2><div class="rank" id="coletas"></div></div>
+  </section>
+</main>
+<footer><span>Fonte: relatório público Power BI "Performance de Entrega" · atualização automática a cada 15 min</span><span>© <span id="ano"></span> Transcherrer</span></footer>
+
+<script>
+(function(){
+"use strict";
+// ---- Conexão com o relatório público do Power BI ----
+var KEY = "b71628f7-e77d-4e08-b8aa-b8150d073193";
+var API = "https://wabi-brazil-south-b-primary-api.analysis.windows.net/public/reports/";
+var MODEL_ID = 6777409;
+var DATASET = "a19e09d6-d841-4b88-a09d-7430f641c8e3";
+var REPORT = "daed473b-dc78-441b-9afe-0a83489cc278";
+var ENT = {m:"Medidas", e:"Entrega", c:"Calendário_DAX", k:"Coleta", a:"Atualização"};
+var AUTO_MIN = 15;
+var MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+var MIN_VOL_MES = 100; // meses com menos entregas que isso são ignorados no gráfico (ex.: datas futuras)
+
+function lit(v){ return typeof v === "number" ? v + "L" : "'" + String(v).replace(/'/g,"''") + "'"; }
+function ref(s,p,isM){ var e={Expression:{SourceRef:{Source:s}},Property:p}; return isM?{Measure:e}:{Column:e}; }
+
+// sel: [[fonte, campo, ehMedida]]; where: [[fonte, campo, [valores]]]; opts: {top, orderBy:[fonte,campo,ehMedida], desc}
+function query(sel, where, opts){
+  where = (where||[]).filter(function(w){ return w[2] && w[2].length; });
+  opts = opts || {};
+  var used = {};
+  sel.concat(where).forEach(function(x){ used[x[0]] = 1; });
+  if (opts.orderBy) used[opts.orderBy[0]] = 1;
+  var S = sel.map(function(x,i){ var o = ref(x[0],x[1],x[2]); o.Name = "c"+i; return o; });
+  var Q = {Version:2, From:Object.keys(used).map(function(n){ return {Name:n, Entity:ENT[n], Type:0}; }), Select:S};
+  if (where.length) Q.Where = where.map(function(w){
+    return {Condition:{In:{Expressions:[ref(w[0],w[1])], Values:w[2].map(function(v){ return [{Literal:{Value:lit(v)}}]; })}}};
+  });
+  if (opts.orderBy) Q.OrderBy = [{Direction: opts.desc===false?1:2, Expression: ref(opts.orderBy[0],opts.orderBy[1],opts.orderBy[2])}];
+  var red = opts.top ? {DataVolume:3, Primary:{Top:{Count:opts.top}}} : {DataVolume:4, Primary:{Window:{Count:2000}}};
+  var body = {version:"1.0.0", queries:[{Query:{Commands:[{SemanticQueryDataShapeCommand:{Query:Q,
+    Binding:{Primary:{Groupings:[{Projections:S.map(function(_,i){return i;})}]}, DataReduction:red, Version:1}}}]},
+    QueryId:"", ApplicationContext:{DatasetId:DATASET, Sources:[{ReportId:REPORT, VisualId:"html"}]}}], cancelQueries:[], modelId:MODEL_ID};
+  return fetch(API + "querydata?synchronous=true", {method:"POST", headers:{"X-PowerBI-ResourceKey":KEY, "Content-Type":"application/json"}, body:JSON.stringify(body)})
+    .then(function(r){ if(!r.ok) throw new Error("Power BI respondeu " + r.status); return r.json(); })
+    .then(function(j){ return decode(j, sel.length); });
+}
+
+// Decodifica o formato compacto (DSR) do Power BI em linhas simples
+function decode(j, n){
+  var data = j.results && j.results[0] && j.results[0].result && j.results[0].result.data;
+  if (!data || !data.dsr) throw new Error("Resposta inesperada do Power BI");
+  var ds = data.dsr.DS && data.dsr.DS[0];
+  if (!ds) return [];
+  var dicts = ds.ValueDicts || {}, rows = (ds.PH && ds.PH[0] && ds.PH[0].DM0) || [], schema = rows[0] && rows[0].S, prev = [], out = [];
+  rows.forEach(function(r){
+    var v = [], ci = 0, R = r.R || 0, N = r["Ø"] || 0;
+    for (var i=0;i<n;i++){
+      if (R & (1<<i)) v[i] = prev[i];
+      else if (N & (1<<i)) v[i] = null;
+      else { var x = r.C[ci++]; if (schema && schema[i] && schema[i].DN) x = dicts[schema[i].DN][x]; v[i] = x; }
+    }
+    out.push(v); prev = v;
+  });
+  return out;
+}
+
+// ---- Formatação ----
+var nf = new Intl.NumberFormat("pt-BR");
+function num(v){ return v==null ? "–" : nf.format(Math.round(+v)); }
+function pct(v,d){ return v==null || isNaN(+v) ? "–" : (+v*100).toLocaleString("pt-BR",{minimumFractionDigits:d==null?2:d, maximumFractionDigits:d==null?2:d}) + "%"; }
+function pp(v){ return (v>0?"+":"") + (v*100).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " p.p."; }
+function faixa(v,meta){ if(v==null||isNaN(+v)) return ""; v=+v; return v>=meta?"ok":(v>=meta-0.03?"warn":"crit"); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function $(id){ return document.getElementById(id); }
+
+// ---- Estado ----
+var fAno=$("fAno"), fMes=$("fMes"), fFilial=$("fFilial"), btn=$("btnAtualizar"), statusEl=$("status");
+var carregando = false, timer = null;
+
+function setStatus(t, err){ statusEl.textContent = t || ""; statusEl.className = "status" + (err?" err":""); }
+
+function filtrosBase(){
+  var w = [["c","Ano",[+fAno.value]]];
+  if (fMes.value) w.push(["c","Mês",[+fMes.value]]);
+  if (fFilial.value) w.push(["e","FILIAL.",[fFilial.value]]);
+  return w;
+}
+
+function carregarOpcoes(){
+  return Promise.all([
+    query([["c","Ano"],["m","QTE_TOTAL",1]]),
+    query([["e","FILIAL."],["m","QTE_TOTAL",1]])
+  ]).then(function(r){
+    var anos = r[0].filter(function(x){ return x[0]!=null && +x[1]>=MIN_VOL_MES; }).map(function(x){ return +x[0]; }).sort();
+    var atual = fAno.value || String(anos[anos.length-1] || new Date().getFullYear());
+    fAno.innerHTML = anos.map(function(a){ return '<option value="'+a+'">'+a+'</option>'; }).join("");
+    fAno.value = atual;
+    var fil = r[1].filter(function(x){ return x[0]; }).map(function(x){ return x[0]; }).sort();
+    var selF = fFilial.value;
+    fFilial.innerHTML = '<option value="">Todas</option>' + fil.map(function(f){ return '<option value="'+esc(f)+'">'+esc(f)+'</option>'; }).join("");
+    fFilial.value = selF;
+    var selM = fMes.value;
+    fMes.innerHTML = '<option value="">Todos</option>' + MESES.map(function(m,i){ return '<option value="'+(i+1)+'">'+m+'</option>'; }).join("");
+    fMes.value = selM;
+  });
+}
+
+function carregarAtualizacao(){
+  var body = {version:"1.0.0", queries:[{Query:{Commands:[{SemanticQueryDataShapeCommand:{Query:{Version:2,
+    From:[{Name:"a", Entity:ENT.a, Type:0}],
+    Select:[{Aggregation:{Expression:{Column:{Expression:{SourceRef:{Source:"a"}},Property:"Data e Hora"}},Function:4},Name:"x"}]},
+    Binding:{Primary:{Groupings:[{Projections:[0]}]}, Version:1}}}]},
+    QueryId:"", ApplicationContext:{DatasetId:DATASET, Sources:[{ReportId:REPORT, VisualId:"html"}]}}], cancelQueries:[], modelId:MODEL_ID};
+  return fetch(API + "querydata?synchronous=true", {method:"POST", headers:{"X-PowerBI-ResourceKey":KEY, "Content-Type":"application/json"}, body:JSON.stringify(body)})
+  .then(function(r){ return r.json(); }).then(function(j){
+    var dm = j.results[0].result.data.dsr.DS[0].PH[0].DM0[0];
+    var v = dm.M0 != null ? dm.M0 : (dm.C ? dm.C[0] : null);
+    if (v == null) return;
+    var d = new Date(v);
+    $("refresh").textContent = isNaN(d) ? String(v) : d.toLocaleString("pt-BR",{timeZone:"UTC",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  }).catch(function(){ $("refresh").textContent = "–"; }); // o Power BI grava a hora local como se fosse UTC
+}
+
+function carregar(){
+  if (carregando) return;
+  carregando = true; btn.disabled = true; setStatus("Buscando dados no Power BI…");
+  var base = filtrosBase();
+  var semMes = base.filter(function(w){ return w[1] !== "Mês"; });
+  var M = ["QTE_NO_PRAZO","QTE_ATRASO_TRANSPORTADOR","QTE_ATRASO_CLIENTE","QTE_TOTAL","Var%_Performance","Meta Performance","Var%_Coleta","Var%_Mobile","Meta Coleta_Mobile"].map(function(m){ return ["m",m,1]; });
+  var mesAnt = null;
+  if (fMes.value && +fMes.value > 1) mesAnt = [["c","Ano",[+fAno.value]],["c","Mês",[+fMes.value-1]]].concat(fFilial.value?[["e","FILIAL.",[fFilial.value]]]:[]);
+
+  Promise.all([
+    query([["c","Ano"]].concat(M), base),                                                     // 0 totais
+    query([["c","Mês"]].concat(M), semMes),                                                    // 1 por mês
+    query([["e","PAGADOR ATUAL"],["m","QTE_ATRASO_TRANSPORTADOR",1],["m","QTE_TOTAL",1],["m","Var%_Performance",1]], base, {top:12, orderBy:["m","QTE_ATRASO_TRANSPORTADOR",1]}), // 2 ranking
+    query([["e","FILIAL."],["c","Mês"],["m","Var%_Performance",1],["m","QTE_TOTAL",1]], semMes.filter(function(w){return w[1]!=="FILIAL.";})), // 3 matriz
+    query([["k","UNIDADE"],["m","QTE_COLETA_ABERTA",1]], fFilial.value?[["k","UNIDADE",[fFilial.value]]]:[]), // 4 coletas abertas
+    mesAnt ? query([["c","Ano"],["m","Var%_Performance",1]], mesAnt) : Promise.resolve(null),  // 5 mês anterior
+    carregarAtualizacao()
+  ]).then(function(r){
+    renderKpis(r[0][0] || [], r[5] && r[5][0] ? +r[5][0][1] : null, r[4]);
+    renderTrend(r[1]);
+    renderRank(r[2]);
+    renderMatrix(r[3]);
+    renderColetas(r[4]);
+    setStatus("Atualizado às " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}) + ". Próxima atualização automática em " + AUTO_MIN + " min.");
+  }).catch(function(e){
+    setStatus("Não foi possível ler o Power BI: " + e.message + (location.protocol==="file:" ? ". Aberto direto do arquivo o Power BI recusa a leitura: use o abrir-painel.bat (mesma pasta) para abrir o painel." : ". Verifique a internet e clique em Atualizar."), true);
+  }).then(function(){ carregando = false; btn.disabled = false; });
+}
+
+function kpi(label, valor, sub, cls){ return '<div class="card kpi '+(cls||"")+'"><span class="l">'+label+'</span><span class="v">'+valor+'</span><span class="s">'+sub+'</span></div>'; }
+
+function renderKpis(t, ant, coletas){
+  var noPrazo=+t[1]||0, atT=+t[2]||0, atC=+t[3]||0, tot=+t[4]||0, idx=t[5]!=null?+t[5]:null, meta=+t[6]||0.96;
+  var col=t[7]!=null?+t[7]:null, mob=t[8]!=null?+t[8]:null, metaCM=+t[9]||0.98;
+  var share=function(v){ return tot? pct(v/tot,1)+" do total" : "–"; };
+  var dIdx = idx!=null ? '<span class="'+(idx>=meta?"up":"down")+'">'+pp(idx-meta)+'</span>' : "";
+  var dAnt = (ant!=null && idx!=null) ? ' · vs mês anterior <span class="'+(idx>=ant?"up":"down")+'">'+pp(idx-ant)+'</span>' : "";
+  $("kpis").innerHTML =
+    kpi("Total de entregas", num(tot), "CT-e no período") +
+    kpi("No prazo", num(noPrazo), share(noPrazo)) +
+    kpi("Atraso transportador", num(atT), share(atT)) +
+    kpi("Atraso cliente", num(atC), share(atC)) +
+    kpi("Índice de entrega", pct(idx), "Meta "+pct(meta,0)+" · "+dIdx+dAnt+"<br>(No prazo + atraso cliente) / total", "meta-"+faixa(idx,meta));
+  var abertas = (coletas||[]).reduce(function(s,x){ return s + (+x[1]||0); }, 0);
+  $("kpis2").innerHTML =
+    kpi("Coleta", pct(col), "Meta "+pct(metaCM,0)+(col!=null?' · <span class="'+(col>=metaCM?"up":"down")+'">'+pp(col-metaCM)+'</span>':""), "meta-"+faixa(col,metaCM)) +
+    kpi("Mobile (baixa)", pct(mob), "Meta "+pct(metaCM,0)+(mob!=null?' · <span class="'+(mob>=metaCM?"up":"down")+'">'+pp(mob-metaCM)+'</span>':""), "meta-"+faixa(mob,metaCM)) +
+    kpi("Coletas em aberto", num(abertas), "Situação atual, todas as datas");
+}
+
+function renderTrend(rows){
+  var hoje = new Date(), anoSel = +fAno.value;
+  var pts = rows.filter(function(x){ return x[0]!=null && +x[4]>=MIN_VOL_MES && x[5]!=null; })
+    .map(function(x){ return {m:+x[0], v:+x[5], meta:+x[6]||0.96}; }).sort(function(a,b){ return a.m-b.m; });
+  if (!pts.length){ $("trend").innerHTML = '<p class="empty">Sem dados no período.</p>'; $("trendNote").textContent=""; return; }
+  var meta = pts[0].meta, W=640, H=230, l=40, r=20, t=20, b=30;
+  var vals = pts.map(function(p){return p.v;}).concat([meta]);
+  var lo = Math.floor(Math.min.apply(null,vals)*100-1)/100, hi = Math.ceil(Math.max.apply(null,vals)*100+1)/100;
+  var x = function(m){ return l + (m-1)*(W-l-r)/11; }, y = function(v){ return t + (hi-v)/(hi-lo)*(H-t-b); };
+  var g = "", step = (hi-lo) > 0.12 ? 0.04 : 0.02;
+  for (var v = Math.ceil(lo/step)*step; v <= hi+1e-9; v += step) g += '<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="var(--border)"/><text x="'+(l-6)+'" y="'+(y(v)+4)+'" text-anchor="end" font-size="11" fill="var(--ink-muted)">'+Math.round(v*100)+'%</text>';
+  var parcial = (anoSel === hoje.getFullYear()) ? hoje.getMonth()+1 : null;
+  var line = pts.map(function(p){ return x(p.m)+","+y(p.v); }).join(" ");
+  var area = x(pts[0].m)+","+y(lo)+" "+line+" "+x(pts[pts.length-1].m)+","+y(lo);
+  var dots = pts.map(function(p){
+    var ok = p.v >= meta;
+    return '<circle cx="'+x(p.m)+'" cy="'+y(p.v)+'" r="4" fill="'+(ok?"var(--status-ok)":"var(--surface-0)")+'" stroke="var(--brand-green-700)" stroke-width="2"><title>'+MESES[p.m-1]+': '+pct(p.v)+'</title></circle>'+
+           '<text x="'+x(p.m)+'" y="'+(y(p.v)-9)+'" text-anchor="middle" font-size="10" fill="var(--ink-muted)">'+pct(p.v,1)+'</text>';
+  }).join("");
+  var labs = MESES.map(function(m,i){ return '<text x="'+x(i+1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="11" fill="var(--ink-muted)">'+m+(parcial===i+1?"*":"")+'</text>'; }).join("");
+  $("trend").innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Índice de entrega mensal contra a meta">'+g+
+    '<polygon points="'+area+'" fill="var(--brand-green-100)"/><polyline points="'+line+'" fill="none" stroke="var(--brand-green-700)" stroke-width="2.5"/>'+
+    '<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(meta)+'" y2="'+y(meta)+'" stroke="var(--brand-orange-700)" stroke-width="2" stroke-dasharray="6 4"/>'+
+    '<text x="'+(l+4)+'" y="'+(y(meta)-6)+'" text-anchor="start" font-size="11" font-weight="600" fill="var(--brand-orange-700)">Meta '+pct(meta,0)+'</text>'+dots+labs+'</svg>';
+  $("trendNote").textContent = (parcial ? "* mês em andamento (parcial). " : "") + "Meses com menos de "+MIN_VOL_MES+" entregas não aparecem." + (fFilial.value ? " Filial: "+fFilial.value+"." : "");
+}
+
+function renderRank(rows){
+  rows = rows.filter(function(x){ return x[0] && +x[1]>0; }).slice(0,12);
+  if (!rows.length){ $("rank").innerHTML = '<p class="empty">Nenhum atraso do transportador no período.</p>'; return; }
+  var max = +rows[0][1];
+  $("rank").innerHTML = rows.map(function(x){
+    return '<span class="n" title="'+esc(x[0])+'">'+esc(x[0])+'</span><span class="bar"><i style="width:'+(100*x[1]/max).toFixed(1)+'%"></i></span><span class="val">'+num(x[1])+'<small>'+pct(x[3],1)+'</small></span>';
+  }).join("");
+}
+
+function renderMatrix(rows){
+  var meta = 0.96, by = {}, meses = {};
+  rows.forEach(function(x){
+    if (!x[0] || x[1]==null || +x[3] < 1) return;
+    var f = x[0], m = +x[1];
+    (by[f] = by[f] || {})[m] = {v: x[2]!=null?+x[2]:null, n:+x[3]};
+    meses[m] = (meses[m]||0) + (+x[3]);
+  });
+  var ms = Object.keys(meses).map(Number).filter(function(m){ return meses[m] >= MIN_VOL_MES; }).sort(function(a,b){return a-b;});
+  if (fMes.value) ms = ms.filter(function(m){ return m <= +fMes.value; });
+  ms = ms.slice(-6);
+  var filiais = Object.keys(by).map(function(f){
+    var n=0, s=0; ms.forEach(function(m){ var c=by[f][m]; if(c&&c.v!=null){ n+=c.n; s+=c.v*c.n; } });
+    return {f:f, media: n? s/n : null, n:n};
+  }).filter(function(o){ return o.n >= 50; });
+  if (fFilial.value) filiais = filiais.filter(function(o){ return o.f === fFilial.value; });
+  filiais.sort(function(a,b){ return (a.media==null)-(b.media==null) || a.media-b.media; });
+  if (!filiais.length){ $("matrix").innerHTML = '<p class="empty">Sem dados no período.</p>'; return; }
+  var cell = function(c){ return c && c.v!=null ? '<td class="'+faixa(c.v,meta)+'">'+pct(c.v)+'</td>' : '<td>–</td>'; };
+  var tot = {}; ms.forEach(function(m){ var n=0,s=0; Object.keys(by).forEach(function(f){ var c=by[f][m]; if(c&&c.v!=null){n+=c.n;s+=c.v*c.n;} }); tot[m] = n? s/n : null; });
+  var tn=0, ts=0; filiais.forEach(function(o){ if(o.media!=null){ tn+=o.n; ts+=o.media*o.n; } });
+  $("matrix").innerHTML = '<table><thead><tr><th>Filial</th>'+ms.map(function(m){return '<th>'+MESES[m-1]+'</th>';}).join("")+'<th>Período</th></tr></thead><tbody>'+
+    filiais.map(function(o){ return '<tr><td>'+esc(o.f)+'</td>'+ms.map(function(m){ return cell(by[o.f][m]); }).join("")+cell({v:o.media})+'</tr>'; }).join("")+
+    (fFilial.value ? "" : '<tr class="total"><td>Total</td>'+ms.map(function(m){ return '<td>'+pct(tot[m])+'</td>'; }).join("")+'<td>'+pct(tn? ts/tn : null)+'</td></tr>')+
+    '</tbody></table>';
+}
+
+function renderColetas(rows){
+  rows = (rows||[]).filter(function(x){ return x[0] && +x[1]>0; }).sort(function(a,b){ return b[1]-a[1]; });
+  if (!rows.length){ $("coletas").innerHTML = '<p class="empty">Nenhuma coleta em aberto.</p>'; return; }
+  var max = +rows[0][1];
+  $("coletas").innerHTML = rows.map(function(x){
+    return '<span class="n">'+esc(x[0])+'</span><span class="bar"><i class="g" style="width:'+(100*x[1]/max).toFixed(1)+'%"></i></span><span class="val">'+num(x[1])+'</span>';
+  }).join("");
+}
+
+function agendar(){ clearInterval(timer); timer = setInterval(function(){ if(!document.hidden) carregar(); }, AUTO_MIN*60*1000); }
+
+btn.addEventListener("click", function(){ carregar(); agendar(); });
+[fAno,fMes,fFilial].forEach(function(s){ s.addEventListener("change", carregar); });
+$("ano").textContent = new Date().getFullYear();
+
+setStatus("Conectando ao Power BI…");
+carregarOpcoes().then(function(){ carregar(); agendar(); })
+  .catch(function(e){ setStatus("Não foi possível ler o Power BI: " + e.message + (location.protocol==="file:" ? ". Aberto direto do arquivo o Power BI recusa a leitura: use o abrir-painel.bat (mesma pasta) para abrir o painel." : ". Verifique a internet e clique em Atualizar."), true); $("refresh").textContent="–"; });
+})();
+</script>
+</body>
+</html>
